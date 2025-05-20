@@ -6,7 +6,7 @@ Node.js/Express API for ChatApp: messaging, task management, PR tracking endpoin
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/web-dev-interns/ecommerce-backend.git
+git clone https://github.com/TaotechSolutions/chatapp-backend.git
 cd ecommerce-backend
 ```
 ### 2. Install dependencies
