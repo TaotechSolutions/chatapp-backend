@@ -15,3 +15,9 @@ npm install
 # or
 yarn install
 ```
+
+.env
+CONNECTIONSTRING=   //mongodb connection string
+JWT_SECRET=    //any secret
+PORT=5000
+Api_consumer_URL=  //front end url for cors access
