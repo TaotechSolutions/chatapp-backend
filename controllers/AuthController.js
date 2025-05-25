@@ -7,6 +7,10 @@ const { JWT_SECRET } = process.env
 
 
 class AuthController {
+    static async invalidMethod(req, res) {
+        return errorResponse(res, 405, "Method not allowed", null, null);
+    }
+
     static async mustBeLoggedIn(req, res, next) {
         try {
             const bearerHeader = req.headers["authorization"]
@@ -82,7 +86,6 @@ class AuthController {
             return errorResponse(res, 500, "An error has occurred. Please try again later", null, error);
         }
     }
-
 }
 
 

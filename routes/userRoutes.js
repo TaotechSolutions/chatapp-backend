@@ -12,16 +12,17 @@ userRoute.use(cors({
 // Controllers
 const UserController = require('../controllers/UserController')
 const AuthController = require('../controllers/AuthController')
-const { loginUser, mustBeLoggedIn } = AuthController
+const { loginUser, mustBeLoggedIn, invalidMethod } = AuthController
 const { getUserData } = UserController;
 
 
 userRoute.route("/login")
-    .post(loginUser);
+    .post(loginUser)
+    .all(invalidMethod)
 
 userRoute.route("/")
     .get(mustBeLoggedIn, getUserData)
-
+    .all(invalidMethod)
 
 
 module.exports = userRoute;

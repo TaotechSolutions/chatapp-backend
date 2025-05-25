@@ -14,40 +14,25 @@ const isExpired = (date) => {
 }
 
 const hashValue = async (value) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let salt = bcrypt.genSaltSync(10)
-            let hash = bcrypt.hashSync(`${value}`, salt)
-            resolve(hash)
-        } catch (error) {
-            resolve(value)
-        }
-    })
-}
-
-const checkHash = async (hash, value) => {
     try {
-        while (hash.includes('/') || hash.includes('.')) {
-            hash = await hashValue(value)
-        }
-        return hash
+        let salt = bcrypt.genSaltSync(10)
+        let hash = bcrypt.hashSync(`${value}`, salt)
+        return (hash)
     } catch (error) {
-        console.log(error)
+        return (value)
     }
 }
 
 const verifyHash = async (value, hash) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            if (bcrypt.compareSync(value, hash)) {
-                resolve(true)
-            } else {
-                resolve(false)
-            }
-        } catch (error) {
-            resolve(false)
+    try {
+        if (bcrypt.compareSync(value, hash)) {
+            return(true)
+        } else {
+            return(false)
         }
-    })
+    } catch (error) {
+        return (false)
+    }
 }
 
-module.exports = { isExpired, hashValue, checkHash, verifyHash }
+module.exports = { isExpired, hashValue, verifyHash }

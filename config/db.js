@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 mongoose.set('strictQuery', true);
+mongoose.set('strictPopulate', false);
 
 
 module.exports.connectDB = async () => {
@@ -8,7 +9,6 @@ module.exports.connectDB = async () => {
   for (let attempt = 1; attempt <= retries; attempt++){
     try {
       await mongoose.connect(process.env.CONNECTIONSTRING);
-      await mongoose.set('strictPopulate', false);
 
       console.log("Mongo DB connected");
       break;
