@@ -13,7 +13,6 @@ const PORT = process.env.PORT || 3500;
 const { usersRoutes } = require("./routes/apiRouter");
 
 app.use(cookieParser());
-app.use(passport.initialize());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
