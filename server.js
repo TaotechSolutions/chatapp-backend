@@ -1,8 +1,10 @@
 require("dotenv").config();
+require("./config/passport");
 const express = require("express");
 const path = require("path");
 const app = express();
 const server = require('http').createServer(app)
+const cookieParser = require("cookie-parser");
 const WebSocket = require('ws')
 const wss = new WebSocket.Server({ server: server })  // use for WebSocket 
 const db = require('./config/db')
@@ -10,6 +12,8 @@ const PORT = process.env.PORT || 3500;
 
 const { usersRoutes } = require("./routes/apiRouter");
 
+app.use(cookieParser());
+app.use(passport.initialize());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
