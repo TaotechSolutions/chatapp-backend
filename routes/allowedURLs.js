@@ -1,9 +1,8 @@
-const { Api_consumer_URL } = process.env
+const { Api_consumer_URL, NODE_ENV } = process.env
 
 const allowedURLs = {
-    Api_consumer_URL,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    all: [Api_consumer_URL]
+    origins: NODE_ENV === 'production' ? [Api_consumer_URL] : "*", //used origins instead of all for clarity, removed property Api_consumer_URL was redundant 
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'], //array is cleaner and clear than string
 }
 
 module.exports = allowedURLs

@@ -23,16 +23,13 @@ const hashValue = async (value) => {
     }
 }
 
+//compare method returns boboolean  no need for if statement
 const verifyHash = async (value, hash) => {
     try {
-        if (bcrypt.compareSync(value, hash)) {
-            return(true)
-        } else {
-            return(false)
-        }
-    } catch (error) {
-        return (false)
-    }
+    return await bcrypt.compare(value, hash);
+  } catch (error) {
+    return false;
+  }
 }
 
 module.exports = { isExpired, hashValue, verifyHash }
