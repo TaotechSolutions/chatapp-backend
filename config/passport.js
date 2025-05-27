@@ -1,8 +1,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const GitHubStrategy = require("passport-github2").Strategy;
-const User = require("../models/User");
-
+const UserServices = require("../services/UserServices")
 // Google Strategy
 passport.use(
   new GoogleStrategy({
@@ -14,10 +13,7 @@ passport.use(
     const email = profile.emails?.[0]?.value;
     if (!email) return done(new Error("Email not provided by provider"));
     
-    let user = await User.findOne({ email });
-    if (!user) {
-      user = await User.create({ email, emailVerified: true, authProvider: "google" });
-    }
+    let user = await UserServices.findOrCreateUser(email, "google");
     return done(null, user);
   } catch (err) {
     return done(err, null);
@@ -37,10 +33,7 @@ passport.use(
     const email = profile.emails?.[0]?.value;
     if (!email) return done(new Error("Email not provided by provider"));
     
-    let user = await User.findOne({ email });
-   if (!user) {
-    user = await User.create({ email, emailVerified: true, authProvider: "github" });
-  }
+    let user = await UserServices.findOrCreateUser(email, "github");
     return done(null, user);
   } catch (err) {
     return done(err, null);
@@ -52,7 +45,7 @@ passport.serializeUser((user, done) => {
 });
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await User.findById(id);
+    const user = await UserServices.findUserById(id);
     done(null, user);
   } catch (err) {
     done(err, null);

@@ -2,7 +2,6 @@ const User = require("../models/User");
 
 class UserServices {
   static async findUserByData(data, showPassword = false) {
-    //changed variable name from user => query, adjusted  try block for schema modifications
     try {
       const query = User.findOne(data);
       if (showPassword) query.select("+password");
@@ -12,6 +11,22 @@ class UserServices {
       throw error;
     }
   }
+  static async findOrCreateUser(email, provider) {
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({
+        email,
+        emailVerified: true,
+        authProvider: provider
+      });
+    }
+    return user;
+  }
+  
+    static async findUserById(id) {
+    return await User.findById(id);
+  }
+  
 }
 
 module.exports = UserServices;
