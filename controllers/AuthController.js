@@ -2,10 +2,7 @@ const UserServices = require("../services/UserServices");
 const { errorResponse, successResponse } = require("../utils/responses");
 const { loginUserSchema, mongoIdSchema } = require("../validators/auth");
 const { verifyHash } = require("../utils/helpers");
-const {
-  signJWTToken,
-  verifyJWTToken,
-} = require("../middlewares/TokenProvider");
+const { signJWTToken, verifyJWTToken } = require("../middlewares/TokenProvider");
 const { JWT_SECRET } = process.env;
 
 const jwtCookieOptions = {
@@ -45,16 +42,11 @@ class AuthController {
 
       //checking if user account was deactivated by Admin
       const user = await UserServices.findUserByData({ _id: userId });
-      if (!user)
-        return errorResponse(res, 404, "User with that token not found!", null);
+      if (!user) return errorResponse(res, 404, "User with that token not found!", null);
       const userSavedStatus = user.status;
 
       if (userStatus !== userSavedStatus) {
-        return errorResponse(
-          res,
-          403,
-          "Your Account was deactivated. Please contact Support"
-        );
+        return errorResponse(res, 403, "Your Account was deactivated. Please contact Support");
       } else {
         req.apiUser = apiUser;
         req.userId = apiUser._id;
@@ -63,13 +55,7 @@ class AuthController {
       }
     } catch (error) {
       console.log(error);
-      return errorResponse(
-        res,
-        401,
-        "You must be logged in to perform that action!",
-        "",
-        error
-      );
+      return errorResponse(res, 401, "You must be logged in to perform that action!", "", error);
     }
   }
 
@@ -99,12 +85,9 @@ class AuthController {
         );
 
       if (!emailVerified) {
-        await errorResponse(
-          res,
-          401,
-          `Email not verified, please verify your email to proceed.`,
-          { emailVerified: false }
-        );
+        await errorResponse(res, 401, `Email not verified, please verify your email to proceed.`, {
+          emailVerified: false,
+        });
         return;
       }
 
@@ -124,13 +107,7 @@ class AuthController {
       await successResponse(res, 200, "Login successful", { user });
     } catch (error) {
       console.log(error);
-      return errorResponse(
-        res,
-        500,
-        "An error has occurred. Please try again later",
-        null,
-        error
-      );
+      return errorResponse(res, 500, "An error has occurred. Please try again later", null, error);
     }
   }
 
@@ -145,17 +122,9 @@ class AuthController {
 
   static async oauthCallback(req, res) {
     if (!req.user || !req.user._id || !req.user.email) {
-      return errorResponse(
-        res,
-        400,
-        "OAuth callback failed: User data missing."
-      );
+      return errorResponse(res, 400, "OAuth callback failed: User data missing.");
     }
-    const token = signJWTToken(
-      { _id: req.user._id, email: req.user.email },
-      JWT_SECRET,
-      "7d"
-    );
+    const token = signJWTToken({ _id: req.user._id, email: req.user.email }, JWT_SECRET, "7d");
 
     res.cookie("auth_token", token, jwtCookieOptions);
 
