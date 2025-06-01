@@ -1,0 +1,82 @@
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: taotech@test.com
+        password:
+          type: string
+          example: password123
+
+    LoginSuccess:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Login successful
+        data:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                _id:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                status:
+                  type: string
+                emailVerified:
+                  type: boolean
+                role:
+                  type: string
+                oauthProvider:
+                  type: string
+                authProvider:
+                  type: string
+                createdAt:
+                  type: string
+                  format: date-time
+                updatedAt:
+                  type: string
+                  format: date-time
+
+    LogoutSuccess:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Logged out successfully
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 401
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Unauthorized access
