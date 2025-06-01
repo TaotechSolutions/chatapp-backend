@@ -1,3 +1,4 @@
+# @todo; Implement schema modularization, handle schema from swagger.yaml in this component
 components:
   schemas:
     LoginRequest:
