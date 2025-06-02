@@ -1,0 +1,144 @@
+openapi: 3.0.0
+info:
+  title: Auth API
+  version: 1.0.0
+  description: >
+    API documentation for authentication. This route uses an HttpOnly cookie for auth. You must log in first before accessing protected routes.
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development
+  - url: https://chatapp-backend-vws5.onrender.com
+    description: Production server
+tags:
+  - name: Auth
+    description: Authentication & Authorization routes
+
+paths:
+  /user/login:
+    post:
+      tags:
+        - Auth
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              # $ref: './schemas/authSchemas.yaml#/components/schemas/LoginRequest'
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: taotech@test.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                # $ref: './schemas/authSchemas.yaml#/components/schemas/LoginSuccess'
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Login successful
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          username:
+                            type: string
+                          email:
+                            type: string
+                          status:
+                            type: string
+                          emailVerified:
+                            type: boolean
+                          role:
+                            type: string
+                          oauthProvider:
+                            type: string
+                          authProvider:
+                            type: string
+                          createdAt:
+                            type: string
+                            format: date-time
+                          updatedAt:
+                            type: string
+                            format: date-time
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                # $ref: "./schemas/authSchemas.yaml#/components/schemas/ErrorResponse"
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 401
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Unauthorized access
+  /user/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout user
+      responses:
+        "200":
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                # $ref: "./schemas/authSchemas.yaml#/components/schemas/LogoutSuccess"
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Logged out successfully
+
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                # $ref: "./schemas/authSchemas.yaml#/components/schemas/ErrorResponse"
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 401
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Unauthorized access

@@ -1,19 +1,10 @@
 const express = require("express");
 const passport = require("passport");
 const userRoute = express.Router();
-const cors = require("cors");
-const { origins, methods } = require("./allowedURLs");
+
 // Controllers
 const UserController = require("../controllers/UserController");
 const AuthController = require("../controllers/AuthController");
-
-userRoute.use(
-  cors({
-    origin: origins,
-    methods,
-    credentials: true, // allows cookies to be sent/received
-  })
-);
 
 const { loginUser, logoutUser, oauthCallback, mustBeLoggedIn, invalidMethod } = AuthController;
 const { getUserData } = UserController;
@@ -30,7 +21,7 @@ userRoute.route("/google/callback").get(passport.authenticate("google", { sessio
 userRoute.route("/github").get(passport.authenticate("github", { scope: ["user:email"] })).all(invalidMethod);
 userRoute.route("/github/callback").get(passport.authenticate("github", { session: false }), oauthCallback).all(invalidMethod);
 
-// @ todo:fetch User data  
+// @ todo:fetch User data, separate auth route from user route 
 userRoute.route("/").get(mustBeLoggedIn, getUserData).all(invalidMethod);
 
 module.exports = userRoute;
