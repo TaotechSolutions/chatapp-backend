@@ -141,14 +141,10 @@ class AuthController {
 
     // If request is from SPA expecting JSON (e.g., frontend redirect handler)
     if (req.headers.accept?.includes("application/json")) {
-      return successResponse(res, 200, "OAuth login successful", {
-        user: req.user,
-        token,
-      });
+      return successResponse(res, 200, "OAuth login successful", req.user);
     }
-
     // Otherwise, it's a traditional browser redirect flow
-    res.redirect("/dashboard");
+    res.redirect(process.env.FRONTEND_REDIRECT_URL);
   }
 }
 
