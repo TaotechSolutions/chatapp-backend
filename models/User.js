@@ -4,7 +4,9 @@ const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: true,
+    required: function () {
+      return this.oauthProvider === "local";
+    },
     unique: true,
   },
   email: {
@@ -14,6 +16,9 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
+    required: function () {
+      return this.oauthProvider === "local";
+    },
     select: false, //ensures that we exclude the password hash from all query results by default for security
   },
   status: {
@@ -23,7 +28,7 @@ const UserSchema = new mongoose.Schema({
   },
   emailVerified: {
     type: Boolean,
-     default: false
+    default: false,
   },
   role: {
     type: String,
@@ -39,7 +44,7 @@ const UserSchema = new mongoose.Schema({
 
 UserSchema.set("timestamps", true);
 
-// Custom validation to ensure either password or oauthProvider is present @ todo: test both user creation auth.  
+// Custom validation to ensure either password or oauthProvider is present @ todo: test both user creation auth.
 UserSchema.pre("validate", function (next) {
   if (!this.password && this.oauthProvider === "local") {
     this.invalidate("password", "Password is required for local authentication.");

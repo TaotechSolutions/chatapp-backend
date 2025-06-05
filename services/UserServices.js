@@ -11,22 +11,40 @@ class UserServices {
       throw error;
     }
   }
-  static async findOrCreateUser(email, provider) {
+  static async findOrCreateUser(email, profileData = {}, provider = "google") {
+    if (!email) throw new Error("Email is required");
     let user = await User.findOne({ email });
-    if (!user) {
-      user = await User.create({
-        email,
-        emailVerified: true,
-        authProvider: provider
-      });
+
+    if (user) {
+      // Existing user found, just return it
+      return user;
     }
-    return user;
+
+    // Generate a unique username from email or profile
+    let baseUsername = email.split("@")[0];
+    let username = baseUsername;
+    let counter = 1;
+
+    // Ensure uniqueness of the username
+    while (await User.exists({ username })) {
+      username = `${baseUsername}${counter++}`;
+    }
+
+    // Create a new user with OAuth provider, no password required
+    user = new User({
+      email,
+      username,
+      oauthProvider: provider,
+      emailVerified: true,
+      ...profileData, // any optional extra data
+    });
+
+    return await user.save();
   }
-  
-    static async findUserById(id) {
+
+  static async findUserById(id) {
     return await User.findById(id);
   }
-  
 }
 
 module.exports = UserServices;
