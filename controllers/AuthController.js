@@ -173,7 +173,7 @@ class AuthController {
       let hashVal = await hashValue(token)
       hashVal = await cleanHash(hashVal, token)
       const resetLink = `${Api_consumer_URL}/auth/reset-password/${_id}/${hashVal}`
-      successResponse(res, 200, "Password reset link sent to your email address.", resetLink);
+      successResponse(res, 200, "Password reset link sent to your email address.");
 
       // Send user email
       const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(userByEmail, resetLink, "request") //return HTML email to be sent
