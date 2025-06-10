@@ -32,4 +32,6 @@ GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 GOOGLE_CALLBACK_URL=https://yourdomain.com/api/user/google/callback
 GITHUB_CALLBACK_URL=https://yourdomain.com/api/user/github/callback
+TAOTECH_EMAIL=EmailAddressThatSendsTheEmail
+TAOTECH_EMAIL_PASS=theAppPasswordForTheEMail
 ```
