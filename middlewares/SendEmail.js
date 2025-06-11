@@ -7,9 +7,6 @@ const { TAOTECH_EMAIL, TAOTECH_EMAIL_PASS } = process.env
 // Create a transporter object using SMTP transport using gmail to send
 const transporter = nodemailer.createTransport({
     service: 'Gmail',
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false, // true for 465, false for other ports
     auth: {
         user: TAOTECH_EMAIL,
         pass: TAOTECH_EMAIL_PASS,
