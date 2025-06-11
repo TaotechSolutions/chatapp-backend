@@ -49,11 +49,12 @@ class UserServices {
 
   static async updateUser(userId, updatedUserData) {
     try {
-      const updatedUser = await User.findByIdAndUpdate(userId, updatedUserData, {
-        new: true,
-        runValidators: true,
-      }).then(async user => { return user });
-      return updatedUser;
+      if (!userId || !updatedUserData) {
+        throw new Error('Invalid input: userId and updatedUserData are required');
+      }
+      return await User.findByIdAndUpdate(userId, updatedUserData, {
+        new: true, runValidators: true
+      })
     } catch (error) {
       throw error;
     }
