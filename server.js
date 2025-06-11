@@ -3,6 +3,7 @@ require("./config/passport");
 const express = require("express");
 const path = require("path");
 const app = express();
+const session = require("express-session");
 const server = require('http').createServer(app)
 const cookieParser = require("cookie-parser");
 const WebSocket = require('ws')
@@ -13,6 +14,7 @@ const db = require('./config/db')
 const cors = require("cors");
 const { origins, methods } = require("./routes/allowedURLs");
 const { usersRoutes } = require("./routes/apiRouter");
+const { router } = require("./routes/apiRouter");
 
 
 const PORT = process.env.PORT || 3500;
@@ -22,6 +24,11 @@ const swaggerDocument = YAML.load(path.join(__dirname, './swagger/swagger.yaml')
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(session({
+    secret:'sample-secret',
+    resave:false,
+    saveUninitialized:false
+}))
 
 // Apply global CORS middleware once
 app.use(cors({
@@ -49,6 +56,7 @@ app.use((err, req, res, next) => {
 db.connectDB()
 
 app.use("/api/user", usersRoutes);
+app.use('/api/user', router);
 // add other routes here
 
 server.listen(PORT, () => console.log(`Server running on ${PORT}`))
