@@ -177,8 +177,13 @@ class AuthController {
       successResponse(res, 200, "Password reset link sent to your email address.");
 
       // Send user email
+      const emailData = {
+        email: userByEmail.email,
+        emailToBeSent, emailHead: "Reset Password",
+        emailSubject: "Reset password Request."
+      }
       const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(userByEmail, resetLink, "request") //return HTML email to be sent
-      await EmailServices.sendingEmailToUser(userByEmail.email, emailToBeSent, "Reset Password", `Reset password Request.`)
+      await EmailServices.sendingEmailToUser(emailData)
     } catch (error) {
       console.log(error)
       next(error)
@@ -199,12 +204,17 @@ class AuthController {
       if (forgottenUser.status !== 200) return errorResponse(res, forgottenUser.status, forgottenUser.error);
       const foundUserId = forgottenUser.result._id
       const newPassword = await hashValue(password)
-      const updatedUser = await UserServices.updateUser(foundUserId, { password: newPassword })
+      const updatedUser = await UserServices.updateUser(foundUserId, { password: newPassword, resetToken: "", resetCount: 0 })
       successResponse(res, 200, "Password reset successful.");
 
       // Send user email
+      const emailData = {
+        email: updatedUser.email,
+        emailToBeSent, emailHead: "Password Changed!",
+        emailSubject: "Your account password changed successfully."
+      }
       const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(updatedUser, "", "success") //return HTML email to be sent
-      await EmailServices.sendingEmailToUser(updatedUser.email, emailToBeSent, "Password Changed!", `Your account password changed successfully.`)
+      await EmailServices.sendingEmailToUser(emailData)
     } catch (error) {
       next(error)
     }

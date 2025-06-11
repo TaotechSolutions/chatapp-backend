@@ -5,21 +5,25 @@ const { TAOTECH_EMAIL, TAOTECH_EMAIL_PASS } = process.env
 
 
 // Create a transporter object using SMTP transport using gmail to send
-const transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-        user: TAOTECH_EMAIL,
-        pass: TAOTECH_EMAIL_PASS,
-    },
-});
-
-
-const emailDesign = fs.readFileSync('views/email-design.html', 'utf-8');  //the HTML design of our Email
-const $ = cheerio.load(emailDesign);                                //Load the HTML content into Cheerio
-
+const getTransporter = () => {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: TAOTECH_EMAIL,
+                pass: TAOTECH_EMAIL_PASS,
+            },
+        });
+        return transporter;
+    } catch (error) {
+        throw error;
+    }
+}
 
 //receives data to be sent to user
 let SendEmail = function (data) {
+    const emailDesign = fs.readFileSync('views/email-design.html', 'utf-8');  //the HTML design of our Email
+    const $ = cheerio.load(emailDesign);                                //Load the HTML content into Cheerio
     const emailBody = $(data.messageLocation);              // Finding the element containing the email body to replace
     emailBody.html(data.emailToBeSent)                      // Replacing the html within the element
     const emailHeader = $(data.emailHeaderLocation)        //finding the element containing the email header to replace
@@ -41,6 +45,7 @@ let SendEmail = function (data) {
 //sends users email
 SendEmail.prototype.sendEmailToUser = function () {
     return new Promise(async (resolve, reject) => {
+        const transporter = getTransporter();
         const mailOptions = {
             from: `"TaoChat" <${TAOTECH_EMAIL}>`,
             to: this.data.userEmail,
@@ -50,6 +55,7 @@ SendEmail.prototype.sendEmailToUser = function () {
 
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
+                transporter.close()
                 console.error({ message: "Email Failed To Send!", status: error });
                 reject({ status: 500, error: { message: "Email Failed To Send!", nodeMailerStatus: error } })
             } else {
