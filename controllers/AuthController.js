@@ -5,7 +5,8 @@ const { verifyHash, hashValue, cleanHash, isExpired, extendDate, compareDate } =
 const { signJWTToken, verifyJWTToken } = require("../middlewares/TokenProvider");
 const EmailBluePrint = require("../utils/EmailBlueprint");
 const EmailServices = require("../services/EmailServices");
-const { JWT_SECRET, Api_consumer_URL } = process.env;
+const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } = process.env;
+
 
 const jwtCookieOptions = {
   httpOnly: true, // inaccessible to JavaScript (prevents XSS)
@@ -161,14 +162,14 @@ class AuthController {
       if (!userByEmail?.emailVerified) return errorResponse(res, 403, 'Verification failed, Email is not verified.');
       const { _id, password, resetCount = 0, resetDate } = userByEmail;
       const isResetToday = compareDate(new Date(), resetDate);
-      if (resetCount >= 3 && isResetToday) return errorResponse(res, 403, 'Password reset is unavailable as you have exceeded the maximum number of attempts. Try again after 24 hours.');
+      if (resetCount >= Number(MAX_RESET_ATTEMPTS) && isResetToday) return errorResponse(res, 403, 'Password reset is unavailable as you have exceeded the maximum number of attempts. Try again after 24 hours.');
 
       const secret = JWT_SECRET + password  // to make the reset url invalid after password change
       const payload = { email: userByEmail.email, _id }
 
-      const token = await signJWTToken(payload, secret, '15m')
+      const token = await signJWTToken(payload, secret, RESET_TOKEN_EXPIRY)
       let data = { resetToken: token, resetCount: resetCount + 1, resetDate: new Date() }
-      if (resetCount >= 3 && !isResetToday) { data = { ...data, resetCount: 1 } }
+      if (resetCount >= Number(MAX_RESET_ATTEMPTS) && !isResetToday) { data = { ...data, resetCount: 1 } }
       await UserServices.updateUser(_id, data)
       let hashVal = await hashValue(token)
       hashVal = await cleanHash(hashVal, token)
