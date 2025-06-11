@@ -24,10 +24,10 @@ const extendDate = (oldDate, extendDuration) => {
             minute: 'numeric'
         };
 
-        const extendedDate = oldDate
+        const extendedDate = new Date(oldDate)
         extendedDate.setHours(extendedDate.getHours() + 1);
         extendedDate.setDate(extendedDate.getDate() + extendDuration);
-        const extendedNormalDate = extendedDate.toLocaleDateString('en-UK', options)
+        const extendedNormalDate = extendedDate.toLocaleDateString('en-GB', options)
         const [date, time] = extendedNormalDate.split(', ')
         return ({ extendedDate, extendedNormalDate, date, time })
     } catch (error) {
@@ -44,13 +44,9 @@ const compareDate = (firstDate, secondDate) => {
             hour: 'numeric',
             minute: 'numeric'
         };
-
-        const extendedDate1 = firstDate.toLocaleDateString('en-UK', options)
-        const [date1] = extendedDate1.split(', ')
-        const extendedDate2 = secondDate.toLocaleDateString('en-UK', options)
-        const [date2] = extendedDate2.split(', ')
-        if (date1 === date2) return true
-        if (date1 !== date2) return false
+        const date1 =  new Date(firstDate).toLocaleDateString('en-GB', options)
+        const date2 =  new Date(secondDate).toLocaleDateString('en-GB', options)
+        return (date1 === date2)
     } catch (error) {
         return false
     }
@@ -69,11 +65,14 @@ const hashValue = async (value) => {
 // removing '/' and '.' from hash value because it will part of the url on the frontend 
 const cleanHash = async (hash, value) => {
     try {
-        while (hash.includes('/') || hash.includes('.')) {
+        let attempts = 0;
+        while (hash.includes('/') || hash.includes('.') && attempts < 5) {
             hash = await hashValue(value)
+            attempts++;
         }
         return hash
     } catch (error) {
+        console.error(error)
         return hash
     }
 }

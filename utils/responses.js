@@ -8,12 +8,12 @@ const errorResponse = (res, status_code, message, data = null, errors) => {
 };
 
 const errorHandler = (err, req, res, next) => {
-    const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
+    const statusCode = res.statusCode >= 400 ? res.statusCode : 500;
     return res.status(statusCode).json({
         status: statusCode,
         success: false,
         message: err.message || "An error has occurred. Please try again later",
-        errors: err || null
+        errors: process.env.NODE_ENV === 'development' ? err : undefined
     });
 };
 
