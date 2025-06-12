@@ -7,12 +7,16 @@ const UserController = require("../controllers/UserController");
 const AuthController = require("../controllers/AuthController");
 const authenticate = require("../middlewares/authenticate");
 
-const { loginUser, logoutUser, oauthCallback, mustBeLoggedIn, invalidMethod } = AuthController;
+const { loginUser, logoutUser, oauthCallback, mustBeLoggedIn, 
+  invalidMethod, getResetPasswordLink, userResetPassword
+ } = AuthController;
 const { getUserData } = UserController;
 
 //local auth
 userRoute.route("/login").post(loginUser).all(invalidMethod);
 userRoute.route("/logout").post(logoutUser).all(invalidMethod);
+userRoute.route("/forgot-password").post(getResetPasswordLink).all(invalidMethod);
+userRoute.route("/reset-password").post(userResetPassword).all(invalidMethod);
 
 // Google oAuth
 userRoute

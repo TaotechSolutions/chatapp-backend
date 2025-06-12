@@ -11,6 +11,7 @@ class UserServices {
       throw error;
     }
   }
+
   static async findOrCreateUser(email, profileData = {}, provider = "google") {
     if (!email) throw new Error("Email is required");
     let user = await User.findOne({ email });
@@ -45,6 +46,20 @@ class UserServices {
   static async findUserById(id) {
     return await User.findById(id);
   }
+
+  static async updateUser(userId, updatedUserData) {
+    try {
+      if (!userId || !updatedUserData) {
+        throw new Error('Invalid input: userId and updatedUserData are required');
+      }
+      return await User.findByIdAndUpdate(userId, updatedUserData, {
+        new: true, runValidators: true
+      })
+    } catch (error) {
+      throw error;
+    }
+  }
+
 }
 
 module.exports = UserServices;
