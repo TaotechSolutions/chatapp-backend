@@ -6,9 +6,15 @@ const userRoute = express.Router();
 const UserController = require("../controllers/UserController");
 const AuthController = require("../controllers/AuthController");
 
-const { loginUser, logoutUser, oauthCallback, mustBeLoggedIn, 
-  invalidMethod, getResetPasswordLink, userResetPassword
- } = AuthController;
+const {
+  loginUser,
+  logoutUser,
+  oauthCallback,
+  mustBeLoggedIn,
+  invalidMethod,
+  getResetPasswordLink,
+  userResetPassword,
+} = AuthController;
 const { getUserData } = UserController;
 
 //local auth
