@@ -62,7 +62,7 @@ class AuthController {
       if (userStatus !== userSavedStatus) {
         return errorResponse(res, 403, "Your Account was deactivated. Please contact Support");
       } else {
-        req.user = apiUser; //standardized
+        req.user = user; //standardized
         req.userDetails = user;
         next();
       }
