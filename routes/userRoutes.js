@@ -5,6 +5,7 @@ const userRoute = express.Router();
 // Controllers
 const UserController = require("../controllers/UserController");
 const AuthController = require("../controllers/AuthController");
+const authenticate = require("../middlewares/authenticate");
 
 const { loginUser, logoutUser, oauthCallback, mustBeLoggedIn, invalidMethod } = AuthController;
 const { getUserData } = UserController;
@@ -34,6 +35,6 @@ userRoute
   .all(invalidMethod);
 
 // @ todo:fetch User data, separate auth route from user route
-userRoute.route("/").get(mustBeLoggedIn, getUserData).all(invalidMethod);
+userRoute.route("/").get(authenticate, getUserData).all(invalidMethod);
 
 module.exports = userRoute;

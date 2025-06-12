@@ -140,11 +140,14 @@ class AuthController {
     res.cookie("auth_token", token, jwtCookieOptions);
 
     // If request is from SPA expecting JSON (e.g., frontend redirect handler)
-    if (req.headers.accept?.includes("application/json")) {
-      return successResponse(res, 200, "OAuth login successful", req.user);
-    }
+    // if (req.headers.accept?.includes("application/json")) {
+    //   return successResponse(res, 200, "OAuth login successful", req.user);
+    // }
+
+    const redirectUrl = `${process.env.FRONTEND_REDIRECT_URL}/auth-callback`;
+
     // Otherwise, it's a traditional browser redirect flow
-    res.redirect(process.env.FRONTEND_REDIRECT_URL);
+    res.redirect(redirectUrl);
   }
 }
 
