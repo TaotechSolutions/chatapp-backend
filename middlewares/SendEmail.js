@@ -8,7 +8,7 @@ const { TAOTECH_EMAIL, TAOTECH_EMAIL_PASS } = process.env
 const getTransporter = () => {
     try {
         const transporter = nodemailer.createTransport({
-            service: 'Gmail',
+            service: 'gmail',
             auth: {
                 user: TAOTECH_EMAIL,
                 pass: TAOTECH_EMAIL_PASS,
