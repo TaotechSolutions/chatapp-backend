@@ -149,6 +149,11 @@ class AuthController {
     if (!req.user || !req.user._id || !req.user.email) {
       return errorResponse(res, 400, "OAuth callback failed: User data missing.");
     }
+
+    const origin = req.headers.origin;
+
+    let frontendRedirectUrl;
+
     const token = signJWTToken(
       { _id: req.user._id, email: req.user.email, status: req.user.status },
       JWT_SECRET,
@@ -157,12 +162,13 @@ class AuthController {
 
     res.cookie("auth_token", token, jwtCookieOptions);
 
-    // If request is from SPA expecting JSON (e.g., frontend redirect handler)
-    // if (req.headers.accept?.includes("application/json")) {
-    //   return successResponse(res, 200, "OAuth login successful", req.user);
-    // }
+    if (origin && origin.includes("localhost")) {
+      frontendRedirectUrl = process.env.FRONTEND_REDIRECT_URL_LOCAL; // or whatever your local frontend URL is
+    } else {
+      frontendRedirectUrl = process.env.FRONTEND_REDIRECT_URL; // your production frontend
+    }
 
-    const redirectUrl = `${process.env.FRONTEND_REDIRECT_URL}/auth-callback`;
+    const redirectUrl = `${frontendRedirectUrl}/auth-callback`;
 
     // Otherwise, it's a traditional browser redirect flow
     res.redirect(redirectUrl);
