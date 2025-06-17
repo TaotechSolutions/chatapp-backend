@@ -14,7 +14,7 @@ const db = require('./config/db')
 const cors = require("cors");
 const { origins, methods } = require("./routes/allowedURLs");
 const { usersRoutes } = require("./routes/apiRouter");
-const { router } = require("./routes/apiRouter");
+const { RegRoutes } = require("./routes/apiRouter");
 
 
 const PORT = process.env.PORT || 3500;
@@ -24,11 +24,6 @@ const swaggerDocument = YAML.load(path.join(__dirname, './swagger/swagger.yaml')
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(session({
-    secret:'sample-secret',
-    resave:false,
-    saveUninitialized:false
-}))
 
 // Apply global CORS middleware once
 app.use(cors({
@@ -56,7 +51,7 @@ app.use((err, req, res, next) => {
 db.connectDB()
 
 app.use("/api/user", usersRoutes);
-app.use('/api/user', router);
+app.use('/api/user', RegRoutes);
 // add other routes here
 
 server.listen(PORT, () => console.log(`Server running on ${PORT}`))

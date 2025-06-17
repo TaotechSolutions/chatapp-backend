@@ -1,5 +1,5 @@
 const usersRoutes = require('./userRoutes')
-const router = require('./RegRoutes')
+const RegRoutes = require('./RegRoutes')
 // add more routes here and export
 
-module.exports = { usersRoutes, router };
+module.exports = { usersRoutes, RegRoutes };
