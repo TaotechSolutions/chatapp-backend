@@ -219,6 +219,12 @@ class AuthController {
       const resetLink = `${Api_consumer_URL}/auth/reset-password/${_id}/${hashVal}`;
       successResponse(res, 200, "Password reset link sent to your email address.");
 
+      const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(
+        userByEmail,
+        resetLink,
+        "request"
+      ); //return HTML email to be sent
+
       // Send user email
       const emailData = {
         email: userByEmail.email,
@@ -226,14 +232,8 @@ class AuthController {
         emailHead: "Reset Password",
         emailSubject: "Reset password Request.",
       };
-      const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(
-        userByEmail,
-        resetLink,
-        "request"
-      ); //return HTML email to be sent
       await EmailServices.sendingEmailToUser(emailData);
     } catch (error) {
-      console.log(error);
       next(error);
     }
   }
@@ -263,13 +263,13 @@ class AuthController {
       successResponse(res, 200, "Password reset successful.");
 
       // Send user email
+      const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(updatedUser, "", "success"); //return HTML email to be sent
       const emailData = {
         email: updatedUser.email,
         emailToBeSent,
         emailHead: "Password Changed!",
         emailSubject: "Your account password changed successfully.",
       };
-      const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(updatedUser, "", "success"); //return HTML email to be sent
       await EmailServices.sendingEmailToUser(emailData);
     } catch (error) {
       next(error);
