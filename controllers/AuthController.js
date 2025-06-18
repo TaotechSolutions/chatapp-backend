@@ -22,7 +22,7 @@ const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } =
 const jwtCookieOptions = {
   httpOnly: true, // inaccessible to JavaScript (prevents XSS)
   secure: process.env.NODE_ENV === "production", // only sent over HTTPS in production
-  sameSite: "strict", // prevent CSRF
+  sameSite: "none", // prevent CSRF
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
