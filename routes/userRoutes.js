@@ -26,7 +26,15 @@ userRoute.route("/reset-password").post(userResetPassword).all(invalidMethod);
 // Google oAuth
 userRoute
   .route("/google")
-  .get(passport.authenticate("google", { scope: ["profile", "email"] }))
+  .get((req, res, next) => {
+    const env = req.query.env || "production";
+    const state = Buffer.from(JSON.stringify({ env })).toString("base64");
+
+    passport.authenticate("google", {
+      scope: ["profile", "email"],
+      state,
+    })(req, res, next);
+  })
   .all(invalidMethod);
 userRoute
   .route("/google/callback")
