@@ -150,10 +150,16 @@ class AuthController {
       return errorResponse(res, 400, "OAuth callback failed: User data missing.");
     }
 
-    const origin = req.headers.origin;
-
-    let frontendRedirectUrl;
-
+    let env = "production";
+    try {
+      const rawState = req.query.state;
+      if (rawState) {
+        const parsed = JSON.parse(Buffer.from(rawState, "base64").toString());
+        env = parsed.env || env;
+      }
+    } catch (err) {
+      console.warn("Invalid state param:", err);
+    }
     const token = signJWTToken(
       { _id: req.user._id, email: req.user.email, status: req.user.status },
       JWT_SECRET,
@@ -162,11 +168,8 @@ class AuthController {
 
     res.cookie("auth_token", token, jwtCookieOptions);
 
-    if (origin && origin.includes("localhost")) {
-      frontendRedirectUrl = process.env.FRONTEND_REDIRECT_URL_LOCAL; // or whatever your local frontend URL is
-    } else {
-      frontendRedirectUrl = process.env.FRONTEND_REDIRECT_URL; // your production frontend
-    }
+    const frontendRedirectUrl =
+      env === "local" ? process.env.FRONTEND_REDIRECT_URL_LOCAL : process.env.FRONTEND_REDIRECT_URL;
 
     const redirectUrl = `${frontendRedirectUrl}/auth-callback`;
 
