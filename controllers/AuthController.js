@@ -160,6 +160,7 @@ class AuthController {
     } catch (err) {
       console.warn("Invalid state param:", err);
     }
+    console.log("🔁 Redirecting to Google with env:", env);
     const token = signJWTToken(
       { _id: req.user._id, email: req.user.email, status: req.user.status },
       JWT_SECRET,
