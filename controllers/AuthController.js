@@ -19,10 +19,12 @@ const EmailBluePrint = require("../utils/EmailBlueprint");
 const EmailServices = require("../services/EmailServices");
 const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } = process.env;
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const jwtCookieOptions = {
-  httpOnly: true, // inaccessible to JavaScript (prevents XSS)
-  secure: process.env.NODE_ENV === "production", // only sent over HTTPS in production
-  sameSite: "none", // prevent CSRF
+  httpOnly: isProduction,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: isProduction ? "None" : "Lax",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
@@ -133,13 +135,13 @@ class AuthController {
     res.clearCookie("auth_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: isProduction ? "None" : "Lax",
     });
 
     res.clearCookie("auth_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: isProduction ? "None" : "Lax",
     });
 
     return successResponse(res, 200, "Logged out successfully");
@@ -160,7 +162,7 @@ class AuthController {
     } catch (err) {
       console.warn("Invalid state param:", err);
     }
-    console.log("🔁 Redirecting to Google with env:", env);
+
     const token = signJWTToken(
       { _id: req.user._id, email: req.user.email, status: req.user.status },
       JWT_SECRET,
