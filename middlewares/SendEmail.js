@@ -4,21 +4,6 @@ const cheerio = require('cheerio');
 const { TAOTECH_EMAIL, TAOTECH_EMAIL_PASS } = process.env
 
 
-// Create a transporter object using SMTP transport using gmail to send
-const getTransporter = () => {
-    try {
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: TAOTECH_EMAIL,
-                pass: TAOTECH_EMAIL_PASS,
-            },
-        });
-        return transporter;
-    } catch (error) {
-        throw error;
-    }
-}
 
 //receives data to be sent to user
 let SendEmail = function (data) {
@@ -45,7 +30,15 @@ let SendEmail = function (data) {
 //sends users email
 SendEmail.prototype.sendEmailToUser = function () {
     return new Promise(async (resolve, reject) => {
-        const transporter = getTransporter();
+        // Create a transporter object using SMTP transport using gmail to send
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: TAOTECH_EMAIL,
+                pass: TAOTECH_EMAIL_PASS,
+            },
+        });
+
         const mailOptions = {
             from: `"TaoChat" <${TAOTECH_EMAIL}>`,
             to: this.data.userEmail,
