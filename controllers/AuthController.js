@@ -19,12 +19,12 @@ const EmailBluePrint = require("../utils/EmailBlueprint");
 const EmailServices = require("../services/EmailServices");
 const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } = process.env;
 
-// const isProduction = process.env.NODE_ENV === "production";
+const isProduction = process.env.NODE_ENV === "production";
 
 const jwtCookieOptions = {
   httpOnly: true,
   secure: true, //@todo change protocol after development for now Allow HTTP clients to receive this cookie
-  sameSite: "none",
+  sameSite: "None",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
@@ -115,8 +115,14 @@ class AuthController {
 
       const token = await signJWTToken(userData, JWT_SECRET, "7d");
 
+      console.log("token", token);
+
       // Set token as HTTP-only cookie
       res.cookie("auth_token", token, jwtCookieOptions);
+
+      // Log what Set-Cookie header is sent
+      const setCookieHeader = res.getHeader("Set-Cookie");
+      console.log("Set-Cookie header:", setCookieHeader);
 
       delete user.password;
       delete user?.resetToken;
