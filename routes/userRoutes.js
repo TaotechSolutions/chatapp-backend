@@ -28,7 +28,6 @@ userRoute
   .route("/google")
   .get((req, res, next) => {
     const env = req.query.env || "production";
-    console.log("🧪 Redirecting with ENV:", env);
     const state = Buffer.from(JSON.stringify({ env })).toString("base64");
 
     passport.authenticate("google", {
