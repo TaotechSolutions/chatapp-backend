@@ -120,10 +120,6 @@ class AuthController {
       // Set token as HTTP-only cookie
       res.cookie("auth_token", token, jwtCookieOptions);
 
-      // Log what Set-Cookie header is sent
-      const setCookieHeader = res.getHeader("Set-Cookie");
-      console.log("Set-Cookie header:", setCookieHeader);
-
       delete user.password;
       delete user?.resetToken;
       await successResponse(res, 200, "Login successful", { user });
@@ -176,6 +172,10 @@ class AuthController {
     );
 
     res.cookie("auth_token", token, jwtCookieOptions);
+
+    // Log what Set-Cookie header is sent
+    const setCookieHeader = res.getHeader("Set-Cookie");
+    console.log("Set-Cookie header:", setCookieHeader);
 
     const frontendRedirectUrl =
       env === "local" ? process.env.FRONTEND_REDIRECT_URL_LOCAL : process.env.FRONTEND_REDIRECT_URL;
