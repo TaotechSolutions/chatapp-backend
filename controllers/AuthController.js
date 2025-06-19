@@ -19,12 +19,12 @@ const EmailBluePrint = require("../utils/EmailBlueprint");
 const EmailServices = require("../services/EmailServices");
 const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } = process.env;
 
-const isProduction = process.env.NODE_ENV === "production";
+// const isProduction = process.env.NODE_ENV === "production";
 
 const jwtCookieOptions = {
   httpOnly: true,
-  secure: false, //@todo change protocol after development for now Allow HTTP clients to receive this cookie
-  sameSite: isProduction ? "None" : "Lax",
+  secure: true, //@todo change protocol after development for now Allow HTTP clients to receive this cookie
+  sameSite: "none",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
