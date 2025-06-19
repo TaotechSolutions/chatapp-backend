@@ -22,8 +22,8 @@ const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } =
 const isProduction = process.env.NODE_ENV === "production";
 
 const jwtCookieOptions = {
-  httpOnly: isProduction,
-  secure: process.env.NODE_ENV === "production",
+  httpOnly: true,
+  secure: false, //@todo change protocol after development for now Allow HTTP clients to receive this cookie
   sameSite: isProduction ? "None" : "Lax",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
