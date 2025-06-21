@@ -24,7 +24,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const jwtCookieOptions = {
   httpOnly: true,
   secure: true, //@todo change protocol after development for now Allow HTTP clients to receive this cookie
-  sameSite: "None",
+  sameSite: "Strict",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
@@ -177,13 +177,23 @@ class AuthController {
     const setCookieHeader = res.getHeader("Set-Cookie");
     console.log("Set-Cookie header:", setCookieHeader);
 
-    const frontendRedirectUrl =
-      env === "local" ? process.env.FRONTEND_REDIRECT_URL_LOCAL : process.env.FRONTEND_REDIRECT_URL;
+    // Instead of redirecting, send a postMessage back to opener window
+    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
 
-    const redirectUrl = `${frontendRedirectUrl}/auth-callback`;
-
-    // Otherwise, it's a traditional browser redirect flow
-    res.redirect(redirectUrl);
+    res.send(`
+  <html>
+    <body>
+      <script>
+        try {
+          window.opener.postMessage({ type: 'OAUTH_SUCCESS' }, '*');
+        } catch (e) {
+          console.warn("Failed to postMessage:", e);
+        }
+        window.close();
+      </script>
+    </body>
+  </html>
+`);
   }
 
   static async getResetPasswordLink(req, res, next) {
