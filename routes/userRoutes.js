@@ -5,6 +5,7 @@ const userRoute = express.Router();
 // Controllers
 const UserController = require("../controllers/UserController");
 const AuthController = require("../controllers/AuthController");
+const { RegUser } = require("../controllers/RegController");
 
 const { loginUser, logoutUser, oauthCallback, mustBeLoggedIn, invalidMethod } = AuthController;
 const { getUserData } = UserController;
@@ -12,6 +13,7 @@ const { getUserData } = UserController;
 //local auth
 userRoute.route("/login").post(loginUser).all(invalidMethod);
 userRoute.route("/logout").post(logoutUser).all(invalidMethod);
+userRoute.post("/register", RegUser);
 
 // Google oAuth
 userRoute

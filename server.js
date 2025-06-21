@@ -14,7 +14,6 @@ const db = require('./config/db')
 const cors = require("cors");
 const { origins, methods } = require("./routes/allowedURLs");
 const { usersRoutes } = require("./routes/apiRouter");
-const { RegRoutes } = require("./routes/apiRouter");
 
 
 const PORT = process.env.PORT || 3500;
@@ -51,7 +50,6 @@ app.use((err, req, res, next) => {
 db.connectDB()
 
 app.use("/api/user", usersRoutes);
-app.use('/api/user', RegRoutes);
 // add other routes here
 
 server.listen(PORT, () => console.log(`Server running on ${PORT}`))
