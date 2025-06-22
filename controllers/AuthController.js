@@ -35,11 +35,23 @@ class AuthController {
 
   static async mustBeLoggedIn(req, res, next) {
     try {
-      const bearerToken = req.cookies?.auth_token;
-      if (!bearerToken) {
+      // Try Authorization header first (fallback)
+      let token;
+
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+        console.log("🔐 Using Bearer token from Authorization header");
+      } else if (req.cookies?.auth_token) {
+        token = req.cookies.auth_token;
+        console.log("🔐 Using token from HttpOnly cookie");
+      }
+
+      if (!token) {
         return errorResponse(res, 401, "Authentication token is missing.");
       }
-      const verifiedUser = await verifyJWTToken(bearerToken, JWT_SECRET); //verifying the token generated when logging in
+
+      const verifiedUser = await verifyJWTToken(token, JWT_SECRET); //verifying the token generated when logging in
       if (verifiedUser.status !== 200)
         return errorResponse(
           res,
@@ -185,7 +197,7 @@ class AuthController {
     <body>
       <script>
         try {
-          window.opener.postMessage({ type: 'OAUTH_SUCCESS' }, '*');
+          window.opener.postMessage({ type: 'OAUTH_SUCCESS', token: '${token}' }, '*');
         } catch (e) {
           console.warn("Failed to postMessage:", e);
         }
