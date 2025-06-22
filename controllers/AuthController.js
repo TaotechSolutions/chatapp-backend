@@ -142,22 +142,7 @@ class AuthController {
   }
 
   static async logoutUser(req, res) {
-    const token = req.cookies?.auth_token;
-
-    if (!token) return errorResponse(res, 401, "Unauthorized: No auth token found");
-
-    res.clearCookie("auth_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: isProduction ? "None" : "Lax",
-    });
-
-    res.clearCookie("auth_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: isProduction ? "None" : "Lax",
-    });
-
+    res.clearCookie("auth_token", jwtCookieOptions);
     return successResponse(res, 200, "Logged out successfully");
   }
 
