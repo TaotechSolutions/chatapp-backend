@@ -24,7 +24,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const jwtCookieOptions = {
   httpOnly: true,
   secure: true, //@todo change protocol after development for now Allow HTTP clients to receive this cookie
-  sameSite: "None",
+  sameSite: "Strict",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
