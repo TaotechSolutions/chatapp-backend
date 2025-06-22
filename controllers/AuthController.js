@@ -151,17 +151,6 @@ class AuthController {
       return errorResponse(res, 400, "OAuth callback failed: User data missing.");
     }
 
-    let env = "production";
-    try {
-      const rawState = req.query.state;
-      if (rawState) {
-        const parsed = JSON.parse(Buffer.from(rawState, "base64").toString());
-        env = parsed.env || env;
-      }
-    } catch (err) {
-      console.warn("Invalid state param:", err);
-    }
-
     const token = signJWTToken(
       { _id: req.user._id, email: req.user.email, status: req.user.status },
       JWT_SECRET,
