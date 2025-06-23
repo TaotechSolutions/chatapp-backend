@@ -13,7 +13,7 @@ const { getUserData } = UserController;
 //local auth
 userRoute.route("/login").post(loginUser).all(invalidMethod);
 userRoute.route("/logout").post(logoutUser).all(invalidMethod);
-userRoute.post("/register", RegUser);
+userRoute.route("/register").post(RegUser);
 
 // Google oAuth
 userRoute
