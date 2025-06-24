@@ -21,11 +21,13 @@ const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } =
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const jwtCookieOptions = {
-  httpOnly: true,
-  secure: true, //@todo change protocol after development for now Allow HTTP clients to receive this cookie
-  sameSite: "Strict",
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+const jwtCookieOptions = rememberMe => {
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "Strict",
+    maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session
+  };
 };
 
 class AuthController {
@@ -125,12 +127,10 @@ class AuthController {
         role: user.role,
       };
 
-      const token = await signJWTToken(userData, JWT_SECRET, "7d");
-
-      console.log("token", token);
+      const token = await signJWTToken(userData, JWT_SECRET, value.rememberMe ? "7d" : undefined);
 
       // Set token as HTTP-only cookie
-      res.cookie("auth_token", token, jwtCookieOptions);
+      res.cookie("auth_token", token, jwtCookieOptions(value.rememberMe));
 
       delete user.password;
       delete user?.resetToken;
@@ -142,7 +142,7 @@ class AuthController {
   }
 
   static async logoutUser(req, res) {
-    res.clearCookie("auth_token", jwtCookieOptions);
+    res.clearCookie("auth_token", jwtCookieOptions());
     return successResponse(res, 200, "Logged out successfully");
   }
 
@@ -157,7 +157,7 @@ class AuthController {
       "7d"
     );
 
-    res.cookie("auth_token", token, jwtCookieOptions);
+    res.cookie("auth_token", token, jwtCookieOptions(true));
 
     // Log what Set-Cookie header is sent
     const setCookieHeader = res.getHeader("Set-Cookie");
