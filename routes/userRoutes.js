@@ -19,22 +19,14 @@ const { getUserData } = UserController;
 
 //local auth
 userRoute.route("/login").post(loginUser).all(invalidMethod);
-userRoute.route("/logout").post(logoutUser).all(invalidMethod);
+userRoute.route("/logout").post(mustBeLoggedIn, logoutUser).all(invalidMethod);
 userRoute.route("/forgot-password").post(getResetPasswordLink).all(invalidMethod);
 userRoute.route("/reset-password").post(userResetPassword).all(invalidMethod);
 
 // Google oAuth
 userRoute
   .route("/google")
-  .get((req, res, next) => {
-    const env = req.query.env || "production";
-    const state = Buffer.from(JSON.stringify({ env })).toString("base64");
-
-    passport.authenticate("google", {
-      scope: ["profile", "email"],
-      state,
-    })(req, res, next);
-  })
+  .get(passport.authenticate("google", { scope: ["profile", "email"] }))
   .all(invalidMethod);
 userRoute
   .route("/google/callback")
@@ -44,7 +36,7 @@ userRoute
 // GitHub OAuth
 userRoute
   .route("/github")
-  .get(passport.authenticate("github", { scope: ["user:email"] }))
+  .get(passport.authenticate("github", { scope: ["read:use", "user:email"] }))
   .all(invalidMethod);
 userRoute
   .route("/github/callback")

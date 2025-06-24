@@ -21,11 +21,13 @@ const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } =
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const jwtCookieOptions = {
-  httpOnly: true,
-  secure: false, //@todo change protocol after development for now Allow HTTP clients to receive this cookie
-  sameSite: isProduction ? "None" : "Lax",
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+const jwtCookieOptions = rememberMe => {
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "Strict",
+    maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session
+  };
 };
 
 class AuthController {
@@ -35,11 +37,23 @@ class AuthController {
 
   static async mustBeLoggedIn(req, res, next) {
     try {
-      const bearerToken = req.cookies?.auth_token;
-      if (!bearerToken) {
+      // Try Authorization header first (fallback)
+      let token;
+
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+        console.log("🔐 Using Bearer token from Authorization header");
+      } else if (req.cookies?.auth_token) {
+        token = req.cookies.auth_token;
+        console.log("🔐 Using token from HttpOnly cookie");
+      }
+
+      if (!token) {
         return errorResponse(res, 401, "Authentication token is missing.");
       }
-      const verifiedUser = await verifyJWTToken(bearerToken, JWT_SECRET); //verifying the token generated when logging in
+
+      const verifiedUser = await verifyJWTToken(token, JWT_SECRET); //verifying the token generated when logging in
       if (verifiedUser.status !== 200)
         return errorResponse(
           res,
@@ -113,10 +127,10 @@ class AuthController {
         role: user.role,
       };
 
-      const token = await signJWTToken(userData, JWT_SECRET, "7d");
+      const token = await signJWTToken(userData, JWT_SECRET, value.rememberMe ? "7d" : undefined);
 
       // Set token as HTTP-only cookie
-      res.cookie("auth_token", token, jwtCookieOptions);
+      res.cookie("auth_token", token, jwtCookieOptions(value.rememberMe));
 
       delete user.password;
       delete user?.resetToken;
@@ -128,22 +142,7 @@ class AuthController {
   }
 
   static async logoutUser(req, res) {
-    const token = req.cookies?.auth_token;
-
-    if (!token) return errorResponse(res, 401, "Unauthorized: No auth token found");
-
-    res.clearCookie("auth_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: isProduction ? "None" : "Lax",
-    });
-
-    res.clearCookie("auth_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: isProduction ? "None" : "Lax",
-    });
-
+    res.clearCookie("auth_token", jwtCookieOptions());
     return successResponse(res, 200, "Logged out successfully");
   }
 
@@ -152,32 +151,35 @@ class AuthController {
       return errorResponse(res, 400, "OAuth callback failed: User data missing.");
     }
 
-    let env = "production";
-    try {
-      const rawState = req.query.state;
-      if (rawState) {
-        const parsed = JSON.parse(Buffer.from(rawState, "base64").toString());
-        env = parsed.env || env;
-      }
-    } catch (err) {
-      console.warn("Invalid state param:", err);
-    }
-
     const token = signJWTToken(
       { _id: req.user._id, email: req.user.email, status: req.user.status },
       JWT_SECRET,
       "7d"
     );
 
-    res.cookie("auth_token", token, jwtCookieOptions);
+    res.cookie("auth_token", token, jwtCookieOptions(true));
 
-    const frontendRedirectUrl =
-      env === "local" ? process.env.FRONTEND_REDIRECT_URL_LOCAL : process.env.FRONTEND_REDIRECT_URL;
+    // Log what Set-Cookie header is sent
+    const setCookieHeader = res.getHeader("Set-Cookie");
+    console.log("Set-Cookie header:", setCookieHeader);
 
-    const redirectUrl = `${frontendRedirectUrl}/auth-callback`;
+    // Instead of redirecting, send a postMessage back to opener window
+    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
 
-    // Otherwise, it's a traditional browser redirect flow
-    res.redirect(redirectUrl);
+    res.send(`
+  <html>
+    <body>
+      <script>
+        try {
+          window.opener.postMessage({ type: 'OAUTH_SUCCESS', token: '${token}' }, '*');
+        } catch (e) {
+          console.warn("Failed to postMessage:", e);
+        }
+        window.close();
+      </script>
+    </body>
+  </html>
+`);
   }
 
   static async getResetPasswordLink(req, res, next) {

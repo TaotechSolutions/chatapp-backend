@@ -1,8 +1,10 @@
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 
 //sign and verify(sync with try/catch)  (sign, verify) are synchronous — wrapping them in Promises adds unnecessary complexity.
-const signJWTToken = (payload, secret, duration) =>
-  jwt.sign(payload, secret, { expiresIn: duration });
+const signJWTToken = (payload, secret, duration) => {
+  const options = duration ? { expiresIn: duration } : {};
+  return jwt.sign(payload, secret, options);
+};
 
 const verifyJWTToken = (token, secret) => {
   try {
@@ -13,4 +15,4 @@ const verifyJWTToken = (token, secret) => {
   }
 };
 
-module.exports = { signJWTToken, verifyJWTToken }
+module.exports = { signJWTToken, verifyJWTToken };
