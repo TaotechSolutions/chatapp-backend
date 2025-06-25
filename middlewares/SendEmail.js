@@ -52,6 +52,7 @@ SendEmail.prototype.sendEmailToUser = function () {
                 console.error({ message: "Email Failed To Send!", status: error });
                 reject({ status: 500, error: { message: "Email Failed To Send!", nodeMailerStatus: error } })
             } else {
+                console.log('success')
                 resolve({ status: 200, result: { sendResult: "Email Sent Successfully.", nodeMailerStatus: info.response } })
             }
         });

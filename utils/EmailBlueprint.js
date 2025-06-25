@@ -34,6 +34,20 @@ class EmailBluePrint {
     // returning template based on the type
     return type === 'request' ? requestTemplate : successTemplate
   }
+
+  static returnEmailVerificationHTML(user, verifyLink) {
+    return `
+      <b style="text-transform: capitalize;">Dear ${user?.username},</b>
+          <h2> Verify it's you </h2>
+
+          <p style=${textDesign}>
+              There's one quick step you need to complete to verify your identity.
+          </p><br>
+
+          <b style="font-size: 30px;">Verification Link: ${verifyLink}</b>
+          <p>Verification link expires in 30 Mins.</p>
+    `
+  }
 }
 
 
