@@ -5,6 +5,7 @@ const {
   mongoIdSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  verifyEmailSchema,
 } = require("../validators/auth");
 const {
   verifyHash,
@@ -17,7 +18,9 @@ const {
 const { signJWTToken, verifyJWTToken } = require("../middlewares/TokenProvider");
 const EmailBluePrint = require("../utils/EmailBlueprint");
 const EmailServices = require("../services/EmailServices");
-const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } = process.env;
+const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS,
+  RESET_TOKEN_EXPIRY, VERIFY_EMAIL_EXPIRY
+} = process.env;
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -199,7 +202,7 @@ class AuthController {
           "Password reset is unavailable as your account was created using Google Sign-In. Please use Google to log in."
         );
       if (!userByEmail?.emailVerified)
-        return errorResponse(res, 403, "Verification failed, Email is not verified.");
+        return errorResponse(res, 403, "Password Reset Failed, Email is not verified.");
       const { _id, password, resetCount = 0, resetDate } = userByEmail;
       const isResetToday = compareDate(new Date(), resetDate);
       if (resetCount >= Number(MAX_RESET_ATTEMPTS) && isResetToday)
@@ -277,6 +280,55 @@ class AuthController {
       await EmailServices.sendingEmailToUser(emailData);
     } catch (error) {
       next(error);
+    }
+  }
+
+  static async requestEmailVerification(req, res, next) {
+    try {
+      const email = req.params?.email
+      const { value, error } = forgotPasswordSchema.validate({ email });
+      if (error) return errorResponse(res, 400, error?.details[0]?.message);
+      const user = await UserServices.findUserByData({ email: value.email.toLowerCase().trim() })
+      if (!user) return errorResponse(res, 404, 'Email is not found.', null);
+      if (user.emailVerified) return errorResponse(res, 403, 'Email is already verified.');
+      const payload = { email: user.email, _id: user._id }
+      const secret = JWT_SECRET + user._id.toString()
+      const token = await signJWTToken(payload, secret, VERIFY_EMAIL_EXPIRY);
+      await UserServices.updateUser(user._id, { resetToken: token });
+      let hashVal = await hashValue(token);
+      hashVal = await cleanHash(hashVal, token);
+      const verifyLink = `${Api_consumer_URL}/verify/email/${user._id}/${hashVal}`;
+      const emailToBeSent = EmailBluePrint.returnEmailVerificationHTML(user, verifyLink); //return HTML email to be sent
+      const emailData = {
+        email: user.email,
+        emailToBeSent,
+        emailHead: "Verify Your Email",
+        emailSubject: "Verify your email address",
+      }
+      successResponse(res, 200, "Email verification link sent to your email.");
+      await EmailServices.sendingEmailToUser(emailData);
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  static async verifyEmail(req, res, next) {
+    try {
+      const { value, error } = verifyEmailSchema.validate(req.body);
+      if (error) return errorResponse(res, 400, error?.details[0]?.message);
+      const { userId, token } = value;
+      const user = await UserServices.findUserByData({ _id: userId });
+      if (!user) return errorResponse(res, 404, 'User not found.');
+      if (user.emailVerified) return successResponse(res, 200, 'Email is already verified.');
+      const isValid = await verifyHash(user.resetToken, token);
+      if (!isValid) return errorResponse(res, 403, "Invalid verification link!");
+      const secret = JWT_SECRET + userId;
+      const requestingUser = await verifyJWTToken(user.resetToken, secret);
+      if (requestingUser.status !== 200) return errorResponse(res, requestingUser.status, requestingUser.error);
+      await UserServices.updateUser(userId, { emailVerified: true, resetToken: "" });
+      return successResponse(res, 200, "Email verified successfully");
+    } catch (error) {
+      next(error)
     }
   }
 }
