@@ -30,4 +30,17 @@ const resetPasswordSchema = Joi.object({
   token: Joi.string().required(),
 });
 
-module.exports = { loginUserSchema, mongoIdSchema, forgotPasswordSchema, resetPasswordSchema };
+const verifyEmailSchema = Joi.object({
+  userId: Joi.string().hex().length(24).required().messages({
+    "string.base": "Invalid User Id",
+    "string.hex": "Invalid User Id",
+    "string.length": "Invalid User Id",
+    "any.required": "Invalid User Id",
+  }),
+  token: Joi.string().required()
+});
+
+module.exports = {
+  loginUserSchema, mongoIdSchema, forgotPasswordSchema,
+  resetPasswordSchema, verifyEmailSchema
+};
