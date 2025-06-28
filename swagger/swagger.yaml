@@ -267,13 +267,19 @@ paths:
                   message:
                     type: string
                     example: "Invalid token"
-  /user/verify-email/taotech@test.com:
+  /user/verify-email/{email}:
     get:
       tags:
         - Auth
       summary: Request Email Verification
-      requestBody:
-        required: false
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            format: email
+          description: The email address to verify.
       responses:
         "200":
           description: Email verification request success.
@@ -346,7 +352,7 @@ paths:
                   example: $2b$10$jQma0LfC25SgFyszV4dmUuT6HGcRpxTutAeZOfgckpVcIDxQsIlb2
       responses:
         "200":
-          description: Email verified.
+          description: Email verification response.
           content:
             application/json:
               schema:
@@ -360,7 +366,9 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: Email verified successfully.
+                    enum:
+                      - "Email verified successfully."
+                      - "Email already verified"
         "403":
           description: Invalid verification link.
           content:
@@ -393,19 +401,3 @@ paths:
                   message:
                     type: string
                     example: "User not found"
-        "200":
-          description: Email already verified.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 200
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: "Email already verified"
