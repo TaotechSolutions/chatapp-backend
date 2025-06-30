@@ -49,6 +49,8 @@ app.use((err, req, res, next) => {
 
 db.connectDB()
 
+app
+
 app.use("/api/user", usersRoutes);
 // add other routes here
 
