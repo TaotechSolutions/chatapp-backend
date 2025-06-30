@@ -14,6 +14,7 @@ const db = require('./config/db')
 const cors = require("cors");
 const { origins, methods } = require("./routes/allowedURLs");
 const { usersRoutes } = require("./routes/apiRouter");
+const { errorHandler } = require("./utils/responses");
 
 
 const PORT = process.env.PORT || 3500;
@@ -54,4 +55,6 @@ app
 app.use("/api/user", usersRoutes);
 // add other routes here
 
+
+app.use(errorHandler)
 server.listen(PORT, () => console.log(`Server running on ${PORT}`))

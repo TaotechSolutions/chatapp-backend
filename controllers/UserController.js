@@ -1,15 +1,9 @@
-const UserServices = require('../services/UserServices');
+const { successResponse } = require("../utils/responses");
 
 class UserController {
-    static async getUserData() {
-        try {
-
-        } catch (error) {
-            console.log(error)
-            return errorResponse(res, 500, "An error has occurred. Please try again later", null, error);
-        }
-    }
+  static async getUserData(req, res) {
+    return successResponse(res, 200, "User data fetched successfully", req.user);
+  }
 }
-
 
 module.exports = UserController;

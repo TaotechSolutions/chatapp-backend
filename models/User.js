@@ -40,6 +40,18 @@ const UserSchema = new mongoose.Schema({
     enum: ["local", "google", "github"],
     default: "local",
   },
+  resetToken: {
+    type: String,
+    required: false
+  },
+  resetCount: {
+    type: Number,
+    default: 0
+  },
+  resetDate: {
+    type: Date,
+    default: new Date()
+  }
 });
 
 UserSchema.set("timestamps", true);
