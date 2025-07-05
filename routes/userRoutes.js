@@ -6,6 +6,7 @@ const userRoute = express.Router();
 const UserController = require("../controllers/UserController");
 const AuthController = require("../controllers/AuthController");
 const { RegUser } = require("../controllers/RegController");
+const { findProfile, updateProfile, createProfile } = require("../controllers/ProfileController");
 
 const {
   loginUser,
@@ -18,11 +19,16 @@ const {
 } = AuthController;
 const { getUserData } = UserController;
 
+
 //local auth
 userRoute.route("/login").post(loginUser).all(invalidMethod);
 userRoute.route("/logout").post(logoutUser).all(invalidMethod);
 userRoute.route("/forgot-password").post(getResetPasswordLink).all(invalidMethod);
 userRoute.route("/reset-password").post(userResetPassword).all(invalidMethod);
+userRoute.route("/register").post(RegUser).all(invalidMethod);
+userRoute.route("/profile").post(createProfile).all(invalidMethod);
+userRoute.route("/profile/:userId").get(findProfile).all(invalidMethod);
+userRoute.route("/profile/:userId").put(updateProfile).all(invalidMethod);
 
 // Google oAuth
 userRoute

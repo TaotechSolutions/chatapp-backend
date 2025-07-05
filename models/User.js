@@ -85,4 +85,17 @@ UserSchema.index({
   createdAt: "text",
 });
 
+const profileSchema = new mongoose.Schema({
+  bio: { type: String, default: "" },
+  avatar: { type: String, default: "" },
+  location: { type: String, default: "" },
+  media: [{ type: String }],
+  files: [{ type: String }],
+  role: { type: String, default: "user" },
+  lastSeen: { type: Date, default: Date.now },
+  isOnline: { type: Boolean, default: false },
+});
+const Profile = mongoose.model("Profile", profileSchema);
+
 module.exports = mongoose.model("User", UserSchema);
+module.exports = Profile;

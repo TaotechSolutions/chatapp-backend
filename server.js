@@ -3,7 +3,6 @@ require("./config/passport");
 const express = require("express");
 const path = require("path");
 const app = express();
-const session = require("express-session");
 const server = require('http').createServer(app)
 const cookieParser = require("cookie-parser");
 const WebSocket = require('ws')
