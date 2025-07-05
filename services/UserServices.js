@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 
 class UserServices {
   static async findUserByData(data, showPassword = false) {
@@ -47,6 +48,12 @@ class UserServices {
     return await User.findById(id);
   }
 
+<<<<<<< HEAD
+
+  static async CreateUser({ username, email, password }) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    return await User.create({ username, email, password: hashedPassword });
+=======
   static async updateUser(userId, updatedUserData) {
     try {
       if (!userId || !updatedUserData) {
@@ -58,6 +65,7 @@ class UserServices {
     } catch (error) {
       throw error;
     }
+>>>>>>> main
   }
 
 }

@@ -5,6 +5,7 @@ const userRoute = express.Router();
 // Controllers
 const UserController = require("../controllers/UserController");
 const AuthController = require("../controllers/AuthController");
+const { RegUser } = require("../controllers/RegController");
 
 const {
   loginUser,

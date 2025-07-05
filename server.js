@@ -3,7 +3,6 @@ require("./config/passport");
 const express = require("express");
 const path = require("path");
 const app = express();
-const server = require("http").createServer(app);
 const cookieParser = require("cookie-parser");
 const WebSocket = require("ws");
 const wss = new WebSocket.Server({ server: server }); // use for WebSocket
@@ -53,6 +52,8 @@ app.use((err, req, res, next) => {
 });
 
 db.connectDB();
+
+app
 
 app.use("/api/user", usersRoutes);
 // add other routes here
