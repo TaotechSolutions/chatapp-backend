@@ -44,7 +44,7 @@ class UserServices {
 
     try {
       await Profile.create({
-        userId: newUser._id,
+        user: newUser._id,
         avatar: profileData.picture || "",
       });
     } catch (error) {
@@ -65,7 +65,7 @@ class UserServices {
 
     // Immediately create an associated profile
     try {
-      await Profile.create({ userId: user._id });
+      await Profile.create({ user: user._id });
     } catch (error) {
       console.error("Profile creation failed:", error);
       //  await User.findByIdAndDelete(user._id)
