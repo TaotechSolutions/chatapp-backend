@@ -15,7 +15,7 @@ tags:
     description: Authentication & Authorization routes
 
 paths:
-  /user/login:
+  /auth/login:
     post:
       tags:
         - Auth
@@ -101,7 +101,7 @@ paths:
                   message:
                     type: string
                     example: Unauthorized access
-  /user/logout:
+  /auth/logout:
     post:
       tags:
         - Auth

@@ -42,16 +42,16 @@ const UserSchema = new mongoose.Schema({
   },
   resetToken: {
     type: String,
-    required: false
+    required: false,
   },
   resetCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   resetDate: {
     type: Date,
-    default: new Date()
-  }
+    default: new Date(),
+  },
 });
 
 UserSchema.set("timestamps", true);
@@ -85,17 +85,4 @@ UserSchema.index({
   createdAt: "text",
 });
 
-const profileSchema = new mongoose.Schema({
-  bio: { type: String, default: "" },
-  avatar: { type: String, default: "" },
-  location: { type: String, default: "" },
-  media: [{ type: String }],
-  files: [{ type: String }],
-  role: { type: String, default: "user" },
-  lastSeen: { type: Date, default: Date.now },
-  isOnline: { type: Boolean, default: false },
-});
-const Profile = mongoose.model("Profile", profileSchema);
-
 module.exports = mongoose.model("User", UserSchema);
-module.exports = Profile;
