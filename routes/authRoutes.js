@@ -11,6 +11,8 @@ const {
   invalidMethod,
   getResetPasswordLink,
   userResetPassword,
+  requestEmailVerification,
+  verifyEmail,
 } = AuthController;
 
 router.route("/login").post(loginUser).all(invalidMethod);
@@ -18,6 +20,8 @@ router.route("/logout").post(logoutUser).all(invalidMethod);
 router.route("/register").post(RegUser).all(invalidMethod);
 router.route("/forgot-password").post(getResetPasswordLink).all(invalidMethod);
 router.route("/reset-password").post(userResetPassword).all(invalidMethod);
+router.route("/verify-email/:email").get(requestEmailVerification).all(invalidMethod);
+router.route("/verify-email").post(verifyEmail).all(invalidMethod);
 
 // Google OAuth
 router

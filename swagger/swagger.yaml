@@ -142,7 +142,7 @@ paths:
                   message:
                     type: string
                     example: Unauthorized access
-  /user/forgot-password:
+  /auth/forgot-password:
     post:
       tags:
         - Auth
@@ -193,7 +193,7 @@ paths:
                   message:
                     type: string
                     example: "Password reset is unavailable as you have exceeded the maximum number of attempts. Try again after 24 hours."
-  /user/reset-password:
+  /auth/reset-password:
     post:
       tags:
         - Auth
@@ -267,7 +267,7 @@ paths:
                   message:
                     type: string
                     example: "Invalid token"
-  /user/verify-email/{email}:
+  /auth/verify-email/{email}:
     get:
       tags:
         - Auth
@@ -329,7 +329,7 @@ paths:
                   message:
                     type: string
                     example: "Email not found"
-  /user/verify-email:
+  /auth/verify-email:
     post:
       tags:
         - Auth
