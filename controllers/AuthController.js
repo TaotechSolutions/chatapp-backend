@@ -5,6 +5,7 @@ const {
   mongoIdSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  verifyEmailSchema,
 } = require("../validators/auth");
 const {
   verifyHash,
@@ -17,13 +18,19 @@ const {
 const { signJWTToken, verifyJWTToken } = require("../middlewares/TokenProvider");
 const EmailBluePrint = require("../utils/EmailBlueprint");
 const EmailServices = require("../services/EmailServices");
-const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS, RESET_TOKEN_EXPIRY } = process.env;
+const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS,
+  RESET_TOKEN_EXPIRY, VERIFY_EMAIL_EXPIRY
+} = process.env;
 
-const jwtCookieOptions = {
-  httpOnly: true, // inaccessible to JavaScript (prevents XSS)
-  secure: process.env.NODE_ENV === "production", // only sent over HTTPS in production
-  sameSite: "strict", // prevent CSRF
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+const isProduction = process.env.NODE_ENV === "production";
+
+const jwtCookieOptions = rememberMe => {
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "Strict",
+    maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session
+  };
 };
 
 class AuthController {
@@ -33,11 +40,23 @@ class AuthController {
 
   static async mustBeLoggedIn(req, res, next) {
     try {
-      const bearerToken = req.cookies?.auth_token;
-      if (!bearerToken) {
+      // Try Authorization header first (fallback)
+      let token;
+
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+        console.log("🔐 Using Bearer token from Authorization header");
+      } else if (req.cookies?.auth_token) {
+        token = req.cookies.auth_token;
+        console.log("🔐 Using token from HttpOnly cookie");
+      }
+
+      if (!token) {
         return errorResponse(res, 401, "Authentication token is missing.");
       }
-      const verifiedUser = await verifyJWTToken(bearerToken, JWT_SECRET); //verifying the token generated when logging in
+
+      const verifiedUser = await verifyJWTToken(token, JWT_SECRET); //verifying the token generated when logging in
       if (verifiedUser.status !== 200)
         return errorResponse(
           res,
@@ -111,10 +130,10 @@ class AuthController {
         role: user.role,
       };
 
-      const token = await signJWTToken(userData, JWT_SECRET, "7d");
+      const token = await signJWTToken(userData, JWT_SECRET, value.rememberMe ? "7d" : undefined);
 
       // Set token as HTTP-only cookie
-      res.cookie("auth_token", token, jwtCookieOptions);
+      res.cookie("auth_token", token, jwtCookieOptions(value.rememberMe));
 
       delete user.password;
       delete user?.resetToken;
@@ -126,22 +145,7 @@ class AuthController {
   }
 
   static async logoutUser(req, res) {
-    const token = req.cookies?.auth_token;
-
-    if (!token) return errorResponse(res, 401, "Unauthorized: No auth token found");
-
-    res.clearCookie("auth_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-
-    res.clearCookie("auth_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-
+    res.clearCookie("auth_token", jwtCookieOptions());
     return successResponse(res, 200, "Logged out successfully");
   }
 
@@ -150,28 +154,35 @@ class AuthController {
       return errorResponse(res, 400, "OAuth callback failed: User data missing.");
     }
 
-    const origin = req.headers.origin;
-
-    let frontendRedirectUrl;
-
     const token = signJWTToken(
       { _id: req.user._id, email: req.user.email, status: req.user.status },
       JWT_SECRET,
       "7d"
     );
 
-    res.cookie("auth_token", token, jwtCookieOptions);
+    res.cookie("auth_token", token, jwtCookieOptions(true));
 
-    if (origin && origin.includes("localhost")) {
-      frontendRedirectUrl = process.env.FRONTEND_REDIRECT_URL_LOCAL; // or whatever your local frontend URL is
-    } else {
-      frontendRedirectUrl = process.env.FRONTEND_REDIRECT_URL; // your production frontend
-    }
+    // Log what Set-Cookie header is sent
+    const setCookieHeader = res.getHeader("Set-Cookie");
+    console.log("Set-Cookie header:", setCookieHeader);
 
-    const redirectUrl = `${frontendRedirectUrl}/auth-callback`;
+    // Instead of redirecting, send a postMessage back to opener window
+    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
 
-    // Otherwise, it's a traditional browser redirect flow
-    res.redirect(redirectUrl);
+    res.send(`
+  <html>
+    <body>
+      <script>
+        try {
+          window.opener.postMessage({ type: 'OAUTH_SUCCESS', token: '${token}' }, '*');
+        } catch (e) {
+          console.warn("Failed to postMessage:", e);
+        }
+        window.close();
+      </script>
+    </body>
+  </html>
+`);
   }
 
   static async getResetPasswordLink(req, res, next) {
@@ -191,7 +202,7 @@ class AuthController {
           "Password reset is unavailable as your account was created using Google Sign-In. Please use Google to log in."
         );
       if (!userByEmail?.emailVerified)
-        return errorResponse(res, 403, "Verification failed, Email is not verified.");
+        return errorResponse(res, 403, "Password Reset Failed, Email is not verified.");
       const { _id, password, resetCount = 0, resetDate } = userByEmail;
       const isResetToday = compareDate(new Date(), resetDate);
       if (resetCount >= Number(MAX_RESET_ATTEMPTS) && isResetToday)
@@ -215,6 +226,12 @@ class AuthController {
       const resetLink = `${Api_consumer_URL}/auth/reset-password/${_id}/${hashVal}`;
       successResponse(res, 200, "Password reset link sent to your email address.");
 
+      const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(
+        userByEmail,
+        resetLink,
+        "request"
+      ); //return HTML email to be sent
+
       // Send user email
       const emailData = {
         email: userByEmail.email,
@@ -222,14 +239,8 @@ class AuthController {
         emailHead: "Reset Password",
         emailSubject: "Reset password Request.",
       };
-      const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(
-        userByEmail,
-        resetLink,
-        "request"
-      ); //return HTML email to be sent
       await EmailServices.sendingEmailToUser(emailData);
     } catch (error) {
-      console.log(error);
       next(error);
     }
   }
@@ -259,16 +270,65 @@ class AuthController {
       successResponse(res, 200, "Password reset successful.");
 
       // Send user email
+      const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(updatedUser, "", "success"); //return HTML email to be sent
       const emailData = {
         email: updatedUser.email,
         emailToBeSent,
         emailHead: "Password Changed!",
         emailSubject: "Your account password changed successfully.",
       };
-      const emailToBeSent = EmailBluePrint.returnResetPasswordHTML(updatedUser, "", "success"); //return HTML email to be sent
       await EmailServices.sendingEmailToUser(emailData);
     } catch (error) {
       next(error);
+    }
+  }
+
+  static async requestEmailVerification(req, res, next) {
+    try {
+      const email = req.params?.email
+      const { value, error } = forgotPasswordSchema.validate({ email });
+      if (error) return errorResponse(res, 400, error?.details[0]?.message);
+      const user = await UserServices.findUserByData({ email: value.email.toLowerCase().trim() })
+      if (!user) return errorResponse(res, 404, 'Email is not found.', null);
+      if (user.emailVerified) return errorResponse(res, 403, 'Email is already verified.');
+      const payload = { email: user.email, _id: user._id }
+      const secret = JWT_SECRET + user._id.toString()
+      const token = await signJWTToken(payload, secret, VERIFY_EMAIL_EXPIRY);
+      await UserServices.updateUser(user._id, { resetToken: token });
+      let hashVal = await hashValue(token);
+      hashVal = await cleanHash(hashVal, token);
+      const verifyLink = `${Api_consumer_URL}/verify/email/${user._id}/${hashVal}`;
+      const emailToBeSent = EmailBluePrint.returnEmailVerificationHTML(user, verifyLink); //return HTML email to be sent
+      const emailData = {
+        email: user.email,
+        emailToBeSent,
+        emailHead: "Verify Your Email",
+        emailSubject: "Verify your email address",
+      }
+      successResponse(res, 200, "Email verification link sent to your email.");
+      await EmailServices.sendingEmailToUser(emailData);
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  static async verifyEmail(req, res, next) {
+    try {
+      const { value, error } = verifyEmailSchema.validate(req.body);
+      if (error) return errorResponse(res, 400, error?.details[0]?.message);
+      const { userId, token } = value;
+      const user = await UserServices.findUserByData({ _id: userId });
+      if (!user) return errorResponse(res, 404, 'User not found.');
+      if (user.emailVerified) return successResponse(res, 200, 'Email is already verified.');
+      const isValid = await verifyHash(user.resetToken, token);
+      if (!isValid) return errorResponse(res, 403, "Invalid verification link!");
+      const secret = JWT_SECRET + userId;
+      const requestingUser = await verifyJWTToken(user.resetToken, secret);
+      if (requestingUser.status !== 200) return errorResponse(res, requestingUser.status, requestingUser.error);
+      await UserServices.updateUser(userId, { emailVerified: true, resetToken: "" });
+      return successResponse(res, 200, "Email verified successfully");
+    } catch (error) {
+      next(error)
     }
   }
 }

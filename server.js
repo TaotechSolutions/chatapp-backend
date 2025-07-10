@@ -11,8 +11,8 @@ const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 const db = require("./config/db");
 const cors = require("cors");
-const { origins, methods } = require("./routes/allowedURLs");
 const { usersRoutes, authRoutes, profileRoutes } = require("./routes/apiRouter");
+const { origins, methods, allowedHeaders } = require("./routes/allowedURLs");
 const { errorHandler } = require("./utils/responses");
 
 const PORT = process.env.PORT || 3500;
@@ -28,6 +28,7 @@ app.use(
     origin: origins,
     methods,
     credentials: true,
+    allowedHeaders,
   })
 );
 
