@@ -11,8 +11,8 @@ const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 const db = require("./config/db");
 const cors = require("cors");
+const { usersRoutes, authRoutes, profileRoutes } = require("./routes/apiRouter");
 const { origins, methods, allowedHeaders } = require("./routes/allowedURLs");
-const { usersRoutes } = require("./routes/apiRouter");
 const { errorHandler } = require("./utils/responses");
 
 const PORT = process.env.PORT || 3500;
@@ -54,7 +54,11 @@ app.use((err, req, res, next) => {
 
 db.connectDB();
 
+app;
+
+app.use("/api/auth", authRoutes);
 app.use("/api/user", usersRoutes);
+app.use("/api/profile", profileRoutes);
 // add other routes here
 
 app.use(errorHandler);
