@@ -6,6 +6,7 @@ const {
   forgotPasswordSchema,
   resetPasswordSchema,
   verifyEmailSchema,
+  registrationSchema,
 } = require("../validators/auth");
 const {
   verifyHash,
@@ -82,7 +83,7 @@ class AuthController {
         return errorResponse(res, 403, "Your Account was deactivated. Please contact Support");
       } else {
         req.user = user; //standardized
-        req.userDetails = user;
+        req.userId = user?._id
         next();
       }
     } catch (error) {
@@ -137,7 +138,7 @@ class AuthController {
 
       delete user.password;
       delete user?.resetToken;
-      await successResponse(res, 200, "Login successful", { user });
+      return successResponse(res, 200, "Login successful", { user });
     } catch (error) {
       console.log(error);
       next(error);
@@ -184,6 +185,37 @@ class AuthController {
   </html>
 `);
   }
+
+  static async register(req, res, next) {
+    try {
+      if (!req?.body) return errorResponse(res, 400, "Invalid request body");
+      let { value, error } = registrationSchema.validate(req.body);
+      if (error) return errorResponse(res, 400, error?.details[0]?.message);
+      const userExist = await UserServices.findUserByData({ email: value.email });
+      if (userExist) return errorResponse(res, 400, "Email already exists");
+      const user = await UserServices.CreateUser(value);
+
+      const payload = { email: user?.email, _id: user?._id }
+      const secret = JWT_SECRET + user._id.toString()
+      const token = await signJWTToken(payload, secret, VERIFY_EMAIL_EXPIRY);
+      await UserServices.updateUser(user._id, { resetToken: token });
+      let hashVal = await hashValue(token);
+      hashVal = await cleanHash(hashVal, token);
+      const verifyLink = `${Api_consumer_URL}/verify/email/${user._id}/${hashVal}`;
+      const emailToBeSent = EmailBluePrint.returnEmailVerificationHTML(user, verifyLink); //return HTML email to be sent
+      const emailData = {
+        email: user.email,
+        emailToBeSent,
+        emailHead: "Verify Your Email",
+        emailSubject: "Verify your email address",
+      }
+      successResponse(res, 201, "Registration Successful. Email verification link sent to your email.", { email: user?.email, username: user?.username, _id: user?._id, emailVerified: false });
+      await EmailServices.sendingEmailToUser(emailData);
+    } catch (error) {
+      console.error(error);
+      next(error)
+    }
+  };
 
   static async getResetPasswordLink(req, res, next) {
     try {

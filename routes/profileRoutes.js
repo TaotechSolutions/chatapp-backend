@@ -1,14 +1,19 @@
 const express = require("express");
 const { mustBeLoggedIn, invalidMethod } = require("../controllers/AuthController");
-const { findProfile, updateProfile, createProfile } = require("../controllers/ProfileController");
+const { findProfile, updateProfile, createProfile, getUserProfile } = require("../controllers/ProfileController");
 
 const router = express.Router();
+router.use(mustBeLoggedIn)
 
-router.route("/").post(mustBeLoggedIn, createProfile).all(invalidMethod);
+router.route("/")
+  .get(getUserProfile).all(invalidMethod)
+  .post(createProfile).all(invalidMethod);
+
 router
   .route("/:userId")
-  .get(mustBeLoggedIn, findProfile)
-  .put(mustBeLoggedIn, updateProfile)
+  .get(findProfile)
+  .put(updateProfile)
   .all(invalidMethod);
+
 
 module.exports = router;

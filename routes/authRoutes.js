@@ -1,7 +1,6 @@
 const express = require("express");
 const passport = require("passport");
 const AuthController = require("../controllers/AuthController");
-const { RegUser } = require("../controllers/RegController");
 
 const router = express.Router();
 const {
@@ -13,11 +12,12 @@ const {
   userResetPassword,
   requestEmailVerification,
   verifyEmail,
+  register
 } = AuthController;
 
 router.route("/login").post(loginUser).all(invalidMethod);
 router.route("/logout").post(logoutUser).all(invalidMethod);
-router.route("/register").post(RegUser).all(invalidMethod);
+router.route("/register").post(register).all(invalidMethod);
 router.route("/forgot-password").post(getResetPasswordLink).all(invalidMethod);
 router.route("/reset-password").post(userResetPassword).all(invalidMethod);
 router.route("/verify-email/:email").get(requestEmailVerification).all(invalidMethod);
