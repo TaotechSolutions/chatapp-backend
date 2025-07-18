@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
-const Profile = require("../models/profile");
+const Profile = require("../models/Profile");
 
 class UserServices {
   static async findUserByData(data, showPassword = false) {
@@ -43,10 +43,11 @@ class UserServices {
     });
 
     try {
-      await Profile.create({
+      const profile = await Profile.create({
         user: newUser._id,
         avatar: profileData.picture || "",
       });
+      await User.updateOne(newUser._id, { profile: profile._id });
     } catch (error) {
       console.error("Profile creation failed:", error);
       //  await User.findByIdAndDelete(user._id)
@@ -59,13 +60,13 @@ class UserServices {
     return await User.findById(id);
   }
 
-  static async CreateUser({ username, email, password }) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, email, password: hashedPassword });
+  static async CreateUser(data) {
+    const user = await User.create(data);
 
     // Immediately create an associated profile
     try {
-      await Profile.create({ user: user._id });
+      const profile = await new Profile({ user: user._id }).save();
+      await User.updateOne(user._id, { profile: profile._id });
     } catch (error) {
       console.error("Profile creation failed:", error);
       //  await User.findByIdAndDelete(user._id)
@@ -87,6 +88,7 @@ class UserServices {
       throw error;
     }
   }
+
 }
 
 module.exports = UserServices;

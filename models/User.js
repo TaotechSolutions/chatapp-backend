@@ -52,6 +52,10 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: new Date(),
   },
+  profile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Profile"
+  }
 });
 
 UserSchema.set("timestamps", true);

@@ -13,7 +13,7 @@ const ProfileSchema = new mongoose.Schema(
     location: { type: String, default: "" },
     media: [{ type: String }],
     files: [{ type: String }],
-    role: { type: String, default: "user" }, // duplicate for flexibility
+    // role: { type: String, default: "user" }, // duplicate for flexibility   // not needed, can just populate
     lastSeen: { type: Date, default: Date.now },
     isOnline: { type: Boolean, default: false },
   },
