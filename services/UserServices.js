@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const Profile = require("../models/Profile");
 
 class UserServices {
   static async findUserByData(data, showPassword = false) {
@@ -11,35 +13,16 @@ class UserServices {
       throw error;
     }
   }
-  static async findOrCreateUser(email, profileData = {}, provider = "google") {
-    if (!email) throw new Error("Email is required");
+  static async findOrCreateUser(email, provider) {
     let user = await User.findOne({ email });
-
-    if (user) {
-      // Existing user found, just return it
-      return user;
+    if (!user) {
+      user = await User.create({
+        email,
+        emailVerified: true,
+        authProvider: provider,
+      });
     }
-
-    // Generate a unique username from email or profile
-    let baseUsername = email.split("@")[0];
-    let username = baseUsername;
-    let counter = 1;
-
-    // Ensure uniqueness of the username
-    while (await User.exists({ username })) {
-      username = `${baseUsername}${counter++}`;
-    }
-
-    // Create a new user with OAuth provider, no password required
-    user = new User({
-      email,
-      username,
-      oauthProvider: provider,
-      emailVerified: true,
-      ...profileData, // any optional extra data
-    });
-
-    return await user.save();
+    return user;
   }
 
   static async findUserById(id) {

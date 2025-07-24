@@ -15,7 +15,7 @@ tags:
     description: Authentication & Authorization routes
 
 paths:
-  /user/login:
+  /auth/login:
     post:
       tags:
         - Auth
@@ -101,7 +101,7 @@ paths:
                   message:
                     type: string
                     example: Unauthorized access
-  /user/logout:
+  /auth/logout:
     post:
       tags:
         - Auth
@@ -142,3 +142,262 @@ paths:
                   message:
                     type: string
                     example: Unauthorized access
+  /auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: Get password reset link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: taotech@test.com
+      responses:
+        "200":
+          description: Password reset link sent.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Password reset link sent to your email address.
+        "403":
+          description: Password reset unavailable.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 403
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Password reset is unavailable as you have exceeded the maximum number of attempts. Try again after 24 hours."
+  /auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - password
+                - token
+              properties:
+                userId:
+                  type: string
+                  example: 6847c5a4e087c7014f7e2174
+                password:
+                  type: string
+                  example: "23456734"
+                token:
+                  type: string
+                  example: $2b$10$jQma0LfC25SgFyszV4dmUuT6HGcRpxTutAeZOfgckpVcIDxQsIlb2
+      responses:
+        "200":
+          description: Password reset success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Password reset successful.
+        "403":
+          description: Invalid reset link.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 403
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid reset link!"
+        "401":
+          description: Invalid token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 401
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid token"
+  /auth/verify-email/{email}:
+    get:
+      tags:
+        - Auth
+      summary: Request Email Verification
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            format: email
+          description: The email address to verify.
+      responses:
+        "200":
+          description: Email verification request success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Email verification link sent to your email.
+        "403":
+          description: Email already verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 403
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Email is already verified"
+        "404":
+          description: Email not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 404
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Email not found"
+  /auth/verify-email:
+    post:
+      tags:
+        - Auth
+      summary: Email verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - token
+              properties:
+                userId:
+                  type: string
+                  example: 6847c5a4e087c7014f7e2174
+                token:
+                  type: string
+                  example: $2b$10$jQma0LfC25SgFyszV4dmUuT6HGcRpxTutAeZOfgckpVcIDxQsIlb2
+      responses:
+        "200":
+          description: Email verification response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    enum:
+                      - "Email verified successfully."
+                      - "Email already verified"
+        "403":
+          description: Invalid verification link.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 403
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid verification link!"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 404
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "User not found"

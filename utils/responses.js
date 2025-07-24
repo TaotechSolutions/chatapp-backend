@@ -7,6 +7,16 @@ const errorResponse = (res, status_code, message, data = null, errors) => {
     });
 };
 
+const errorHandler = (err, req, res, next) => {
+    const statusCode = res.statusCode >= 400 ? res.statusCode : 500;
+    return res.status(statusCode).json({
+        status: statusCode,
+        success: false,
+        message: err.message || "An error has occurred. Please try again later",
+        errors: process.env.NODE_ENV === 'development' ? err : undefined
+    });
+};
+
 const successResponse = (res, status_code, message, data = null) => {
     return res.status(status_code).json({
         status: status_code,
@@ -15,4 +25,4 @@ const successResponse = (res, status_code, message, data = null) => {
     });
 };
 
-module.exports = { errorResponse, successResponse };
+module.exports = { errorResponse, successResponse, errorHandler };
