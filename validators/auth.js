@@ -40,7 +40,13 @@ const verifyEmailSchema = Joi.object({
   token: Joi.string().required()
 });
 
+const registrationSchema = Joi.object({
+  username: Joi.string().required(),
+  email: Joi.string().email().required().trim(),
+  password: Joi.string().min(8).required(),
+})
+
 module.exports = {
   loginUserSchema, mongoIdSchema, forgotPasswordSchema,
-  resetPasswordSchema, verifyEmailSchema
+  resetPasswordSchema, verifyEmailSchema, registrationSchema
 };

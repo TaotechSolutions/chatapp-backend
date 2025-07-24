@@ -42,15 +42,19 @@ const UserSchema = new mongoose.Schema({
   },
   resetToken: {
     type: String,
-    required: false
+    required: false,
   },
   resetCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   resetDate: {
     type: Date,
-    default: new Date()
+    default: new Date(),
+  },
+  profile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Profile"
   }
 });
 

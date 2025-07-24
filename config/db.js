@@ -6,7 +6,7 @@ mongoose.set('strictPopulate', false);
 module.exports.connectDB = async () => {
   const retries = 5, delay = 2000;
 
-  for (let attempt = 1; attempt <= retries; attempt++){
+  for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       await mongoose.connect(process.env.CONNECTIONSTRING);
 
@@ -18,7 +18,7 @@ module.exports.connectDB = async () => {
       if (attempt < retries) {
         console.log(`Retrying in ${delay / 1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, delay));
-      }else {
+      } else {
         console.error('All retries failed. Could not connect to Database.');
         throw error;
       }
