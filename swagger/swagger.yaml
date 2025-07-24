@@ -13,6 +13,10 @@ servers:
 tags:
   - name: Auth
     description: Authentication & Authorization routes
+  - name: User
+    description: Operations for managing user accounts.
+  - name: Profile
+    description: Operations for interacting with a users profile info.
 
 paths:
   /auth/login:
@@ -30,6 +34,7 @@ paths:
               required:
                 - email
                 - password
+                - rememberMe
               properties:
                 email:
                   type: string
@@ -38,6 +43,9 @@ paths:
                 password:
                   type: string
                   example: password123
+                rememberMe:
+                  type: boolean
+                  example: false
       responses:
         "200":
           description: Login successful
@@ -56,6 +64,94 @@ paths:
                   message:
                     type: string
                     example: Login successful
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          username:
+                            type: string
+                          email:
+                            type: string
+                          status:
+                            type: string
+                          emailVerified:
+                            type: boolean
+                          role:
+                            type: string
+                          oauthProvider:
+                            type: string
+                          authProvider:
+                            type: string
+                          createdAt:
+                            type: string
+                            format: date-time
+                          updatedAt:
+                            type: string
+                            format: date-time
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                # $ref: "./schemas/authSchemas.yaml#/components/schemas/ErrorResponse"
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 401
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Unauthorized access
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  example: kami
+                email:
+                  type: string
+                  format: email
+                  example: taotech@test.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        "200":
+          description: Registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Registration successful
                   data:
                     type: object
                     properties:
@@ -401,3 +497,291 @@ paths:
                   message:
                     type: string
                     example: "User not found"
+  /user:
+    get:
+      tags:
+        - User
+      summary: Get data for the currently authenticated user
+      description: Retrieves the User information for the user who is currently logged in.
+      responses:
+        "200":
+          description: Successfully retrieved user data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User data retrieved successfully." # More appropriate message
+                  data: # Changed to 'data' to hold the actual user object
+                    type: object
+                    properties:
+                      oauthProvider:
+                        type: string
+                        example: "local"
+                      _id:
+                        type: string
+                        format: uuid
+                        example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                      username:
+                        type: string
+                        example: "john_doe"
+                      email:
+                        type: string
+                        format: email
+                        example: "john.doe@example.com"
+                      status:
+                        type: string
+                        format: email
+                        example: "john.doe@example.com"
+                      emailVerified:
+                        type: boolean
+                        example: "false"
+                      role:
+                        type: string
+                        format: email
+                        example: "john.doe@example.com"
+                      authProvider:
+                        type: string
+                        format: email
+                        example: "john.doe@example.com"
+                      # Add other user properties as needed
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+
+        "401":
+          description: Unauthorized - User is not logged in or token is invalid.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 401
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Authentication required. Please log in." # More appropriate message for 401
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Get data for the authenticated user's own profile
+      description: Retrieves the profile information for the user who is currently logged in.
+      responses:
+        "200":
+          description: Successfully retrieved the authenticated user's profile data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                      username:
+                        type: string
+                        example: "john_doe"
+                      email:
+                        type: string
+                        format: email
+                        example: "john.doe@example.com"
+                      # Add other profile properties as needed (e.g., firstName, lastName, bio, avatarUrl)
+                      firstName:
+                        type: string
+                        example: "John"
+                      lastName:
+                        type: string
+                        example: "Doe"
+                      bio:
+                        type: string
+                        nullable: true
+                        example: "Software developer passionate about NestJS."
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                    required:
+                      - id
+                      - username
+                      - email
+                  message:
+                    type: string
+                    example: "Profile fetched successfully."
+
+        "401":
+          description: Unauthorized - User is not logged in or token is invalid.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 401
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Authentication required. Please log in."
+
+        "404":
+          description: Profile not found for the authenticated user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 404
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "User profile not found."
+  /profile/{userId}:
+    get:
+      tags:
+        - Profile
+      summary: Get a specific user's profile data by ID
+      description: Retrieves the profile information for a specific user, identified by their ID in the URL path.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+            format: objectId
+            pattern: "^[0-9a-fA-F]{24}$" # Regex for a 24-char hex string
+          required: true
+          description: The ID of the user whose profile is to be retrieved.
+    responses:
+      "200":
+        description: Successfully retrieved the specified user's profile data.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  example: 200
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                    username:
+                      type: string
+                      example: "another_user"
+                    email:
+                      type: string
+                      format: email
+                      example: "another.user@example.com"
+                    firstName:
+                      type: string
+                      example: "Jane"
+                    lastName:
+                      type: string
+                      example: "Doe"
+                    bio:
+                      type: string
+                      nullable: true
+                      example: "Enthusiastic front-end developer."
+                    createdAt:
+                      type: string
+                      format: date-time
+                    updatedAt:
+                      type: string
+                      format: date-time
+                  required:
+                    - id
+                    - username
+                    - email
+                message:
+                  type: string
+                  example: "Profile fetched successfully."
+
+      "401":
+        description: Unauthorized - User is not logged in or token is invalid.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  example: 401
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Authentication required. Please log in."
+
+      "403": # Add 403 for Forbidden if user tries to access a profile they don't have permission for
+        description: Forbidden - User does not have permission to view this profile.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  example: 403
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Access denied. You do not have permission to view this profile."
+
+      "404":
+        description: Profile not found for the given userId.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  example: 404
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "User profile not found."
