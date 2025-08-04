@@ -19,8 +19,12 @@ const {
 const { signJWTToken, verifyJWTToken } = require("../middlewares/TokenProvider");
 const EmailBluePrint = require("../utils/EmailBlueprint");
 const EmailServices = require("../services/EmailServices");
-const { JWT_SECRET, Api_consumer_URL, MAX_RESET_ATTEMPTS,
-  RESET_TOKEN_EXPIRY, VERIFY_EMAIL_EXPIRY
+const {
+  JWT_SECRET,
+  Api_consumer_URL,
+  MAX_RESET_ATTEMPTS,
+  RESET_TOKEN_EXPIRY,
+  VERIFY_EMAIL_EXPIRY,
 } = process.env;
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -83,7 +87,7 @@ class AuthController {
         return errorResponse(res, 403, "Your Account was deactivated. Please contact Support");
       } else {
         req.user = user; //standardized
-        req.userId = user?._id
+        req.userId = user?._id;
         next();
       }
     } catch (error) {
@@ -195,8 +199,8 @@ class AuthController {
       if (userExist) return errorResponse(res, 400, "Email already exists");
       const user = await UserServices.CreateUser(value);
 
-      const payload = { email: user?.email, _id: user?._id }
-      const secret = JWT_SECRET + user._id.toString()
+      const payload = { email: user?.email, _id: user?._id };
+      const secret = JWT_SECRET + user._id.toString();
       const token = await signJWTToken(payload, secret, VERIFY_EMAIL_EXPIRY);
       await UserServices.updateUser(user._id, { resetToken: token });
       let hashVal = await hashValue(token);
@@ -208,14 +212,19 @@ class AuthController {
         emailToBeSent,
         emailHead: "Verify Your Email",
         emailSubject: "Verify your email address",
-      }
-      successResponse(res, 201, "Registration Successful. Email verification link sent to your email.", { email: user?.email, username: user?.username, _id: user?._id, emailVerified: false });
+      };
+      successResponse(
+        res,
+        201,
+        "Registration Successful. Email verification link sent to your email.",
+        { email: user?.email, username: user?.username, _id: user?._id, emailVerified: false }
+      );
       await EmailServices.sendingEmailToUser(emailData);
     } catch (error) {
       console.error(error);
-      next(error)
+      next(error);
     }
-  };
+  }
 
   static async getResetPasswordLink(req, res, next) {
     try {
@@ -317,14 +326,14 @@ class AuthController {
 
   static async requestEmailVerification(req, res, next) {
     try {
-      const email = req.params?.email
+      const email = req.params?.email;
       const { value, error } = forgotPasswordSchema.validate({ email });
       if (error) return errorResponse(res, 400, error?.details[0]?.message);
-      const user = await UserServices.findUserByData({ email: value.email.toLowerCase().trim() })
-      if (!user) return errorResponse(res, 404, 'Email is not found.', null);
-      if (user.emailVerified) return errorResponse(res, 403, 'Email is already verified.');
-      const payload = { email: user.email, _id: user._id }
-      const secret = JWT_SECRET + user._id.toString()
+      const user = await UserServices.findUserByData({ email: value.email.toLowerCase().trim() });
+      if (!user) return errorResponse(res, 404, "Email is not found.", null);
+      if (user.emailVerified) return errorResponse(res, 403, "Email is already verified.");
+      const payload = { email: user.email, _id: user._id };
+      const secret = JWT_SECRET + user._id.toString();
       const token = await signJWTToken(payload, secret, VERIFY_EMAIL_EXPIRY);
       await UserServices.updateUser(user._id, { resetToken: token });
       let hashVal = await hashValue(token);
@@ -336,11 +345,11 @@ class AuthController {
         emailToBeSent,
         emailHead: "Verify Your Email",
         emailSubject: "Verify your email address",
-      }
+      };
       successResponse(res, 200, "Email verification link sent to your email.");
       await EmailServices.sendingEmailToUser(emailData);
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
 
@@ -350,17 +359,18 @@ class AuthController {
       if (error) return errorResponse(res, 400, error?.details[0]?.message);
       const { userId, token } = value;
       const user = await UserServices.findUserByData({ _id: userId });
-      if (!user) return errorResponse(res, 404, 'User not found.');
-      if (user.emailVerified) return successResponse(res, 200, 'Email is already verified.');
+      if (!user) return errorResponse(res, 404, "User not found.");
+      if (user.emailVerified) return successResponse(res, 200, "Email is already verified.");
       const isValid = await verifyHash(user.resetToken, token);
       if (!isValid) return errorResponse(res, 403, "Invalid verification link!");
       const secret = JWT_SECRET + userId;
       const requestingUser = await verifyJWTToken(user.resetToken, secret);
-      if (requestingUser.status !== 200) return errorResponse(res, requestingUser.status, requestingUser.error);
+      if (requestingUser.status !== 200)
+        return errorResponse(res, requestingUser.status, requestingUser.error);
       await UserServices.updateUser(userId, { emailVerified: true, resetToken: "" });
       return successResponse(res, 200, "Email verified successfully");
     } catch (error) {
-      next(error)
+      next(error);
     }
   }
 }

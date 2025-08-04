@@ -88,7 +88,6 @@ class UserServices {
       throw error;
     }
   }
-
 }
 
 module.exports = UserServices;
